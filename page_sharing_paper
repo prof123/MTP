@@ -1,21 +1,26 @@
-TEST CHANGE FROM MACBOOK
-
 An analysis of Inter-VM page sharing for KVM
+* Title
+Improving memory management in Virtual environments using Page Sharing
 
 * Introduction
-In this work, an analysis of page sharing techniques is presented. KVM
-is used as the hypervisor/environment of choice, although the findings
-presented are hypervisor agnositc. 
+Memory is one of the important physical resources in virtualized environments. Virtualization enables us to run multiple Operating Systems (one in each Virtual Machine) on a single physical machine. One of the key drivers of Virtual hosting and cloud computing is the ability of hypervisors to overcommit resources. That is, Virtual machines are given resources in excess of what is actually available.
+In this report, we consider the problem of memory overcommitment, since we believe that memory is almost always the resource with the most contention. Unlike CPU and network, memory is non-renewable. Moreover, the optimality of it's allocation is critical because of the non-linear nature of the penalty , in the form of expensive, disk-seek-laden page-faults. 
+
+Our contributions are 2 fold: 
+1. We describe a set of improvements to KSM content-based-page-sharing, and show their impact on performance .
+2. We show that the KSM page-sharing infrastructure is a powerful tool for improving memory management in the host and guests. Here, we make 2 important contributions:
+1. We use page-sharing infrastructure to implement an exclusive page-cache. That is, the host and guest page caches do not have the same content.
+2. 
 
 * Motivation
-Memory is one of the important physical resources. One of the benefits of virtualization is that it permits overcommitment of physical resources. This works because servers are typically woefully underutilized. This works ideally for overcommiting CPU and networking resources. However, the total memory in a system is fixed, and Guest operating systems expect to be able access all the memory they 'see' at boot-time. [hotswap and pluggable memory will be discussed later].
+One of the benefits of virtualization is that it permits overcommitment of physical resources. This works because servers are typically woefully underutilized. This works ideally for overcommiting CPU and networking resources. However, the total memory in a system is fixed, and Guest operating systems expect to be able access all the memory they 'see' at boot-time. [hotswap and pluggable memory will be discussed later].
 Overcommiting memory is then an important trick if we seek to improve server consolidation. 
 While CPU,network usage on idle workloads can be exploited to increase the number of VMs running on a physical machine because they are inherently shared resources and operating systems and processes are aware of their shared nature. Kernels ofcourse do not expect their physical memory (of the machine) to belong to someone else. 
 Furthermore, memory is seldom 'idle' or free. Operating systems make all effort to make full use of available physical memory. Even if the system working set isnt large enough, the rest of the memory is going to be used for caching files and other IO data. 
 One approach is implementing the same virtual memory abstraction that processes are forced to use. 
 The only difference is that the OS kernel is the process, and the hypervisor pages out/in guest physical memory. The disadvantages of this approach are several, as highlighted in [waldspurger].
 Current VMMs have no way of knowing which page to swap out. Bigger performance problems arise when both the host and the guest swap out the page. In this case even the guest swapout will incur 2 IO accesses!
- 
+  
 
 
 ** Why sharing

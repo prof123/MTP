@@ -1,0 +1,43 @@
+This experiment is for comparing mapped vs vanilla ksm.
+setup : g1.sh
+
+qemu -s -curses  disk_server.img -net tap -net nic -kernel linux-3.0/arch/x86/boot/bzImage  -append 'root=/dev/sda1 rw memmap=10M$100M ' -m 500 -monitor telnet:10.129.41.8:4444,server,nowait
+
+1: 1VM on vanilla: 
+root@tripitz:/sys/kernel/mm/ksm# cat *
+1109
+118
+4024
+100
+19554
+215
+1
+200
+
+1VM on mapped:
+<<TODO. pages_shared was 3700. KSM showd 150 pages mapped+skipped (why). so it fits perfectly .
+
+
+2. 2VMs on vanilla:
+1115
+118
+7614
+100
+19545
+17873
+1
+200
+
+
+2. 2VMs on mapped:
+32
+75
+6654
+100
+7090
+36164
+1
+200
+
+1000 pages extra.
+

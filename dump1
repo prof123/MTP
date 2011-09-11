@@ -1,0 +1,22 @@
+             flags	page-count       MB  symbolic-flags			long-symbolic-flags
+0x0000000000000000	    267106     1043  __________________________________	
+0x0000000000000024	       731        2  __R__l____________________________	referenced,lru
+0x0000000000000028	      4391       17  ___U_l____________________________	uptodate,lru
+0x0000000000004028	     12567       49  ___U_l________b___________________	uptodate,lru,swapbacked
+0x000000000000002c	    119400      466  __RU_l____________________________	referenced,uptodate,lru
+0x000000000000402c	       437        1  __RU_l________b___________________	referenced,uptodate,lru,swapbacked
+0x0001000000004038	      9511       37  ___UDl________b_______________I___	uptodate,dirty,lru,swapbacked,readahead
+0x000000000000403c	      4895       19  __RUDl________b___________________	referenced,uptodate,dirty,lru,swapbacked
+0x000000000000003c	      9914       38  __RUDl____________________________	referenced,uptodate,dirty,lru
+0x0000000000000064	       263        1  __R__lA___________________________	referenced,lru,active
+0x000000000000006c	       362        1  __RU_lA___________________________	referenced,uptodate,lru,active
+0x0000000000004078	       408        1  ___UDlA_______b___________________	uptodate,dirty,lru,active,swapbacked
+0x0000000000000080	     12067       47  _______S__________________________	slab
+0x0000000000000400	      6589       25  __________B_______________________	buddy
+0x0000000000000828	      1286        5  ___U_l_____M______________________	uptodate,lru,mmap
+0x0000000000004838	       957        3  ___UDl_____M__b___________________	uptodate,dirty,lru,mmap,swapbacked
+0x0000000000000868	       875        3  ___U_lA____M______________________	uptodate,lru,active,mmap
+0x000000000000086c	     12746       49  __RU_lA____M______________________	referenced,uptodate,lru,active,mmap
+0x0000000000005828	      2156        8  ___U_l_____Ma_b___________________	uptodate,lru,mmap,anonymous,swapbacked
+0x0000000000005868	     54396      212  ___U_lA____Ma_b___________________	uptodate,lru,active,mmap,anonymous,swapbacked
+             total	    521984     2039

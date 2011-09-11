@@ -1,0 +1,395 @@
+* MAIN
+
+* IDEAS
+** Migration CDN
+** KVM guest optimizations
+
+*** Main
+The basic idea is to combine ideas from page deduplication, guest memory tuning, host exclusive page-cache .
+
+For KVM, content based page sharing is provided by the KSM kernel module. (kernel samepage merging). This works strictly on the host-level and considers *all* host pages - which also include all guest pages because KVM just mallocs pages for guest physical memory anyway .
+
+The principal idea here is to *Not consider guest page-cache pages for sharing* .
+First, the benefits:
+Not considering page-cache pages *at all* will reduce the total number of pages to checksum and compare to atleast half. Moreover, pagecache pages are, by their very nature, frequently written. All this contributes to a high dedup activity in KSM.
+Indeed, on a virtual-machine hosting server, the top cpu process is almost-always KSM- taking 10% CPU time even when there is negligible guest VM activity. 
+
+So, reducing the number of pages is one big advantage. 
+
+The next issue is whether any significant sharing opportunity is lost when not considering cache pages. This is essentially a tradeoff between KSM overhead and small savings in memory due to page-cache merging (to be verified, ofcourse, by experiments!) . Exploring this tradeoff is interesting.
+
+The next major idea is to explore host-cache. The host naturally caches disk accesses if the virtual disks are in its local file system. (Even if network mounted, nfs client cache would still work on the host?) Various caching strategies (writethrough/back/direct) have naturally different impact depending on the workload. Further, avoiding double-caching becomes a big problem with host caches. 
+
+Geiger[] describes a mechanism for maintaining an exclusive host page-cache. That is, all pages in its cache are *not* present in the guest, so this avoids double-caching problem. Some ideas from it can be used (and some extensions added) to provide host caching for various types of cache policies. 
+
+Some questions whose answers will be sought are:
+
+1. Is guest page cache needed? What should be it's size ?
+2. Is Host-page-cache needed? Size ?
+3. Are guest-page-caches mergeable through KSM ? What % of time ?
+4. Is swap needed with host page cache ? 
+...
+
+*** Experiments
+For this, some experiments have been thought of: 
+1. Figure out whether KSM can merge page-cache pages.
+Setup: 2 VMs. Record KSM pages_shared. Now copy a file(large) from a network source to each of the 2 VMs. Let KSM settle down. Record pages_shared during this entire experiment. 
+Result : KSM *does* share page-cache pages. And after dropping caches, number returns to original one .
+
+This artificial experiment raises some questions on the linux philosophy of agressive caching.. Not having a page-cache frees up a lot of memory for 'real' process address spaces, and simply
+
+2. KSM overhead due to page-cache changes.
+Same setup and procedure as before, but observe KSM cpu overhead instead of pages_sharing. 
+(measurable increase in cpu% seen)
+
+3. Find page-fault overhead of guest VMs. Large memory allocated vs swap-on-ramdisk.
+Do nested pagetables help here ??
+
+
+*** Related work
+Host-exclusive caching is discussed in geiger [www.cs.wisc.edu/wind/Publications/geiger-asplos06.pdf]
+[www.kernel.org/doc/ols/2010/ols2010-pages-255-262.pdf] discusses some aspects of host cache policy tradeoffs, but the work seems shoddy.
+
+
+
+
+ From the dedup point of view , the "worst case" is when multiple VMs are operating on the same file
+
+KSM (and any other content based page sharing mechanism) essentially works in O(n^2). Moreover, every write is a potential trigger for 
+
+
+
+
+
+** shared memory
+GPA-X and GPA-Y are the same thing, when they are part of 2 distinct address spaces. 
+
+** WHole memory and disk encryption
+** 
+* INTERESTING
+
+** NFS server-side copy
+** NFS /proc experiments for writes. 
+
+* PAPERS
+
+** FOUNDATION
+
+** CANFS
+file:papers/mtp_hunt_2/ananthanarayanan.pdf
+
+Congestion-Aware NFS.
+
+Foundation
+
+** SHRINKER
+file:papers/mtp_hunt_2/RR-7198.pdf
+
+   CLOCK: [2011-05-30 Mon 11:00]
+
+Shrinker: Efﬁcient Wide-Area Live Virtual Machine Migration using Distributed Content-Based Addressing
+
+How to migrate multiple VMs across WANs efficiently?
+The approach taken is a Distributed Hash Table, like chord. The difference is the O(1) lookup, which is important because of the large numbers of pages present.
+The implementation is done in KVM.
+
+*** EXTENSIONS
+memory buddies+shrinker to select the correct target host.
+
+*** WHERE
+This paper is closely associated with all the memory-compression tricks which are presented in memory buddies, SnowFlock, DifferenceEngine, etc. 
+
+While the actual relevance to disk migration is low, the DHT technique could be useful. 
+
+** VMFlock: Virtual Machine Co-Migration for the Cloud
+
+
+** Efﬁcient Storage Synchronization for Live Migration in Cloud Infrastructures
+
+file:papers/mtp_hunt_2/20101126_091028_paper.pdf
+
+This is an umbrella paper with a good survey. They also describe in good detail their own synchronization and storage migration technique.
+
+** Live Wide-Area Migration of Virtual Machines Including Local Persistent State
+Bradford etal
+file:papers/mtp_hunt_2/LAM_persistant.pdf
+<In notebook>
+Simple copy of disk images + trap-writes and apply. 
+
+*** Summary 
+
+** Live and Incremental Whole-System Migration of Virtual Machines Using Block-Bitmap 
+Luo etal 
+file:papers/mtp_hunt_2/incremental_migration.pdf
+
+Similar to [[Bradford]]. Just plain write synchronization using dirty-block bitmaps. Also the bitmaps are maintained at target during normal operation so that the VM can be migrated back to the source.
+
+** Workload-Aware Live Storage Migration for Clouds
+** Activity Based Sector Synchronisation: Efﬁcient Transfer of Disk-State For WAN Live Migration
+
+
+
+
+** CLOUD storage comparison
+
+file:/home/prateeks/acads/papers/mtp_hunt_2/mtp_hunt_1/SIGOPS/p110-hu.pdf
+
+Nice comparison of dropbox with other services. Upload speed,compression,dedup,reliability compared.
+
+** FLASH disk design
+
+file:/home/prateeks/acads/papers/mtp_hunt_2/mtp_hunt_1/SIGOPS/p88-birrell.pdf
+
+Nice description of why flash writes are slow and how they can be speeded up by adding more RAM to onchip controllers.
+
+** TIME MACHINE
+
+file:/home/prateeks/acads/papers/mtp_hunt_2/mtp_hunt_1/SIGOPS/p42-garfinkel.pdf
+
+Time machine (all previous versions of file stored) and secure-delete are 2 contradictory aims. But both are indeed crucial.
+The solution presented is outofthebox: Dont securely delete a file when the command is given, instead defer the operation for some time, and then delete.
+
+Even better, the proposed ticking-time-bomb approach is funny. The crypto-key's bits are chopped off one by one as time goes on. For example, an hour after deleting, 255/256 bits remain, and a brute force search can be done to recover the file. After 1 day: 2 bits, etc. 
+
+Obviously this approach is only good as a UI-level action. As a system-level primitive it would probably not make sense.
+
+** RAID-0.5 
+
+file:/home/prateeks/acads/papers/mtp_hunt_2/mtp_hunt_1/SIGOPS/p37-chandy.pdf
+
+Store data modified since last backup on a redundant disk. dont mirror the whole disk all the time.
+
+** Disk-Scheduling Passe
+
+file:/home/prateeks/acads/papers/mtp_hunt_2/mtp_hunt_1/SIGOPS/p20-boutcher.pdf
+
+An award winning (really!) paper about the effect of IO scheduling at the host and guest.
+Take-away: do the scheduling at the guest, let the host be a dumb scheduler. :-O
+
+** Computer systems are dynamical systems
+
+file:papers/mtp_hunt_2/mtp_hunt_1/Diwan/ 
+
+Wow! 
+
+
+
+
+** capo
+
+** geiger
+
+** Lithium
+
+** AWOL
+
+
+** Qemu VHD
+A new disk image file format to optimize disk accesses.
+
+
+
+
+* SUMMARIES
+
+* TODO
+
+* TASKS
+
+* MEETINGS
+
+
+nfs
+
+ksm 
+
+hugepages
+transparent hugepages and hugetlbfs. what if host doesnt have hugepages supoort? Xen example.
+
+** jul20
+
+nfs-cache in the host?
+ksm
+VEE
+IO coalescing
+
+
+* LINKS
+
+SIGOPS maintains a nice list: http://www.sigops.org/osr.html
+
+http://hub.opensolaris.org/bin/view/Project+muskoka/doc_attic
+
+keith adams blog, irfan ahmed
+
+
+* PLANNING
+- Use ORG mode document for documenting all papers,ideas,tasks,todos
+mtp.org stores ALL paper reviews and experiments and stuff. Managing
+one large document and keeping it consistent is easier than
+linking+dependencies . 
+- Could keep it in a git repo?
+- How to manage all the papers? Noting down stuff in Org mode is the
+  best approach 
+
+* MISC
+Basic challenge: Make all disk state (all blocks , on-demand?)
+available to multiple VMs. DO this in an efficient manner because disk
+state can be large. Also can be done before the actual migration
+begins.
+Disk state is also often replicated for reliability/HA - this property
+can be used in synchronization.
+
+* PAPERS
+** FAWN: A Fast Array of Wimpy Nodes
+
+** Efﬁcient Storage Synchronization for Live Migration in Cloud Infrastructures
+
+
+In this paper, several approaches for implementing and synchronizing
+persistent storage during live migration of virtual machines are
+presented. The related work presented is descriptive and has good
+coverage.
+
+bradford: Copy whole disk first. Subsequent writes are recorded as
+deltas and sent. 
+luo: 
+
+
+** Effect of Disk Prefetching of Guest OS on Storage Deduplication 
+
+The effects of the chunk size on deduplication and disk prefetching
+are evaluated. Prefetching can potentially read in more chunks , so
+overhead of filing them into the CAS system increases, without
+benefiting from the locality of reference. (Spatial)
+
+
+
+** Stupid File Systems Are Better
+This paper looks at filesystems from a virtualization perspective. The
+highher-lvel theme is that not doing clever optimizations is the right
+thing to do , when the  assumptions that made the optimizations
+beneficial do not hold. 
+Thus, clever block layout schemes do not necessarily help when storing
+virtual images. 
+
+** Are Virtual Machine Monitors Microkernels Done Right?
+VMMs(sp XEN) are essentially micro kernels. 
+
+
+* TODO
+read the 4 papers cited and the german-gang one. 
+** Experiment setup [1 day]
+look at kernbench membench something!
+Setup test harness. Do experiment once, record everything.
+CPU% total, CPU% KSM, CPU% ksm functions, performance of benchmark, ksm tracing!
+CPU total histogram how?
+ksm% using perf 
+ksm tracing using proc interface dumps.
+
+** Do experiments [1 day]
+Can be done concurrently with paper reading!
+
+** References. 
+Build bibliography. Read them carefully! References for each section, mainly.
+
+** Read atleast 5 papers properly [5 days]
+Andrea-remzi, caching, LRU, ..,.. 
+
+** Report writing
+   
+** Presentation
+
+** Submit patches to lkml and KVM.
+
+* IDEAS
+** Dedup
+ZFS+ QEMU COW images with Deduplication.    
+* TOPICS
+
+** Guest optimizations
+
+** VM pricing based allocation. 
+This kind of distributed economic pricing based work HAS been done in
+the past, which indicates that it is a good/workable idea. Also not
+really applied to the VM placement area, which is kind of a bonus.
+
+This will be interesting to see what 
+** VM Migration
+*** Bit-torrent like mass migrations with deduplication
+
+*** SnowFlock like thing for desktop migration
+
+** Deduplication
+Dont.do.this. Primarily becase a LOT of theoretical/implementation has
+been done on deduplication, kind of obvious since dedup is such an
+appealing  thing.
+
+
+* EXPERIMENTS
+
+
+** How much does pagecache page comparison cost KSM?
+The purpose of this experiment is to find a reasonable estimate of the impact of pagecache pages on KSM sharing performance. 
+KSM needs to compare each and every page that is marked MADV_MERGABLE. If there are 2 VMs launched by qemu-kvm , the entire physical address space of the VMs are marked as mergable by qemu.
+Thus, even guest pagecache pages are sharable (both intra-guest and inter-VM pages). 
+
+The aim of this exercise is to verify the following hypothesis:
+*Sharing, or attempting to share pagecache pages of VMs causes unecessary KSM overhead.* 
+Although KSM uses sufficiently smart heuristics to detect page-reuse (pages with frequent writes to them are not compared with all the other pages)
+Even with the heuristics KSM uses, the merging process is still essentially O(n^2) [or O(nlogn) ?] .
+Anyway, this is super-linear, and any reduction in 'n' will cause KSM overhead to drop.
+
+Even *if* pagecache pages are merged by KSM, they are liable to be replaced by some different content, because they are afterall part of a *cache* .
+
+*** Experimental details
+Take 2 different VMs. let KSM activity stabilize. We compare KSM overhead/pages-sharing in 2 cases:
+1. page cache polluted with the same file .
+2. pagecache disabled. 
+
+For case-2, we can either use kernel proc/sysctl interface to minimize pagecache usage. But this does not guarantee that pagecache will be disabled completely. We can simulate it by reducing the amount of RAM allocated to the VM *and* tuning sysctl to minimize usage. For sysctl, making dirty-ratio=0 etc would be useful. Also the flushing threads can be made to run very frequently, max dirtypage resident time can be made as small as possible, etc.
+
+KSM overhead can be measured by perf record -a , and also the %cpu of ksm thread. Some logging is required. Also, /proc/sys/mm/ksm output is to be logged , along with the operations (file copy,flush etc).
+
+
+
+* LOG
+  CLOCK: [2011-07-25 Mon 14:41]--[2011-07-25 Mon 17:41] =>  3:00
+Read 4 papers
+  
+
+
+  
+
+* DEADLINES
+Aug-10 : KSM and guest bitmap modifications
+Aug-15: Experiments and optimizations to KSM. Part 1 of report.
+Aug-25: Transcendent memory + Swap experiments (busy because of genomics)
+Aug-31 : geiger for KVM. (exclusive caching)
+
+* KSM
+** Failed efforts
+*** Serial
+Too slow! Can map the output file *directly to /proc/guestflags* though. 
+*** Write to fixed physical location in memory.
+This was thought to be easy , but isnt. The BadRAM kernel patch pins the memory locations by using hwpoison. But cannot figure out whether poisoned pages can be used again, and how? 
+Kmalloc and GFP allocate pages from the slab cache. Hence the starting address (physical) cannot be determined in advance. Im sure drivers etc would be needing this pinned access all the time, maybe i can explore this later. ZONE_DMA , or even alloc_bootmem, perhaps. But it will get messy, and is likely to be a major effort .. debugging non-booting kernels isnt much fun! The last few pages of the alloc_bootmem region could be used for the bitmap perhaps? Way too ugly. 
+
+I could allocate the bitmap at *compile time*. Essentially an array then. This way the location could be easier to determine.Hmm.. Maybe have a "magic marker" page before the bitmap. KSM scans the entire guest RAM looking for this marker. When found, we know that the next few pages are the bitmap. Note that this will have to be done only once, when a new vmarea is registered with KSM using MADV_MERGEABLE.
+
+Another possible way to do this is to use alloc_bootmem or memblocks
+alloc_bootmem allows a 'goal' parameter, such that the alocated regions starts from goal.
+
+*** Direct page access in the host kernel
+*** Opening /dev/ttyS0.
+*** Qemu monitor 
+	Too many jumps from guest->kvm->qemu for simple dumping of addresses. 
+
+** Notes
+Serial port is too slow, use virtio serial. that is FAST. Initially it took 30 seconds to dump kpageflags, but now it is instantaenous. Further tests showed that it takes about 6 seconds to dump a 160M file, yielding an acceptable and large throughput. 
+
+
+qemu disk_server.img -kernel linux-3.0/arch/x86/boot/bzImage  -append 'root=/dev/sda1 rw' -device virtio-serial -chardev file,path=/tmp/guestserial,id=foo -device virtserialport,chardev=foo,name=myport
+
+Here, the file /tmp/guestserial will be created which will contain output of the guest serial port. 
+

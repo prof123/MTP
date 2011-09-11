@@ -1,0 +1,88 @@
+* Introduction
+  
+* Motivation - Overcommitment
+Memory as a hard resource. Importance of overcommit.
+
+* Page Sharing
+Survey of everything. Some history?
+** Scanning vs Disk based sharing
+2 competing approaches.
+   (2)
+* KSM
+Diagram of operations, history, and some implementation details
+Focus on generic nature
+** Exp 1: KSM effectiveness
+Small experiment which shows that KSM shares large % of same pages. Done earlier in fingerprinting project.
+Expected result : > 90% sharing of KSM, so good enough.
+Reason : establish some ground truths: KSM _works_ .
+Setup : Random workload (doesnt matter) and take fingerprint and see KSM shar% . Run with 1,2,3 VMs.
+   (1)
+* Analysis of shared pages
+** By flag
+** Exp 2: Pages shared by flag type
+Run some benchmarks (static VMs just booted up ; Kernbench ; HTTP-perf) and see what kinds of pages are shared by flag type.
+Reason: establish some ground truths : sharing is _feasible_ . Also answer : what _kinds_ of pages are shared?
+Setup: (1,2,3,5) VMs with different OS running same benchmarks. (diff VMs ; same kernel ; same /var/www) 
+
+** Exp 2.1 : KSM with no pagecache pages
+Run KSM but skip all guest pagecache pages.
+
+** Exp 3: Page sharing over time
+Run some benchmarks and record pages shared over the duration of benchmark. Also record *KSM overhead*.
+Reason: Show that KSM overhead is significant enough, thus implying the need for some optimizations.
+Setup: (2) VMs running benchmarks. KSM being profiled using perf.
+
+(1)
+* Lookahead optimization
+** Tracing
+** Implementation and analysis
+(log u etc)
+** Results
+** Exp 4: Lookahead success
+Run benchmarks on VMs (1,2,3) to on and record lookahead successes. Also record *KSM overhead*
+*Compare vanilla KSM overhead with lookahead-optimization*
+
+
+** Exp 5: Substrings in shared-map.
+Record consecutive pages being shared in some benchmarks.
+Reason : justify why lookahead works.
+Setup: tracedump analysis simple python script 
+
+   (3)
+* Problem of double-caching
+** Existing approaches 
+Geiger, that hypervisor memory thing, etc.
+** Importance of exclusive caches.
+** Exp 6: Memory savings with exclusive caches
+How many pages are there in both places?
+Setup : Benchmarks on VMs.
+
+** Exp 7: Overhead of ksm-exclusive-cache
+Run benchmarks on VMs to record KSM overhead (with ex cache)
+Reason : scanning vast host page cache could be significant overhead.Also savings might help.
+
+Some caching theory references.
+   (1)
+* KSM-implementation of double-caching
+** Implementation and analysis
+** Results
+Fig7: Number of pages evicted out due to duplicates
+Fig8: Overhead of cache eviction
+   (2)
+* Qualitative survey of dynamic memory management for VMs.
+** Exp 8: Memory mountains
+Look at this problem like L1/2 cache , and build mem-mountains in these cases:
+(normal ; no guest cache ; no host cache ; swap as ramdisk )
+Setup : could use IOZone or randal bryant's simple program.
+Reason : Demonstrate the latencies/throughput of various caches. 
+*This depends on lots of factors like IO schedulers, FS, virtual disk layout etc. Do for any one, for now.*
+
+** Tmem: cleancache, ramszwap, etc.
+** Collab2
+** Ballooning and Hotplug
+   (2)
+* Conclusion
+   (1)
+* Future Work
+
+* References

@@ -1,0 +1,122 @@
+% Created 2011-09-05 Mon 14:02
+\documentclass[11pt]{article}
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{soul}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\tolerance=1000
+\providecommand{\alert}[1]{\textbf{#1}}
+\begin{document}
+
+
+
+\title{experiments1}
+\author{prateek sharma}
+\date{05 September 2011}
+\maketitle
+
+\setcounter{tocdepth}{3}
+\tableofcontents
+\vspace*{1cm}
+
+\section{Page Sharing}
+\label{sec-1}
+
+Survey of everything. Some history?
+\subsection{Scanning vs Disk based sharing}
+\label{sec-1_1}
+
+2 competing approaches.
+   (2)
+\section{KSM}
+\label{sec-2}
+
+Diagram of operations, history, and some implementation details
+Focus on generic nature
+\subsection{Exp 1: KSM effectiveness}
+\label{sec-2_1}
+
+Small experiment which shows that KSM shares large \% of same pages. Done earlier in fingerprinting project.
+Expected result : > 90\% sharing of KSM, so good enough.
+Reason : establish some ground truths: KSM \underline{works} .
+Setup : Random workload (doesnt matter) and take fingerprint and see KSM shar\% . Run with 1,2,3 VMs.
+   (1)
+\section{Analysis of shared pages}
+\label{sec-3}
+\subsection{Exp 2: Pages shared by flag type}
+\label{sec-3_1}
+
+Run some benchmarks (static VMs just booted up ; Kernbench ; HTTP-perf) and see what kinds of pages are shared by flag type.
+Reason: establish some ground truths : sharing is \underline{feasible} . Also answer : what \underline{kinds} of pages are shared?
+Setup: (1,2,3,5) VMs with different OS running same benchmarks. (diff VMs ; same kernel ; same /var/www) 
+\subsection{Exp 2.1 : KSM with no pagecache pages}
+\label{sec-3_2}
+
+Run KSM but skip all guest pagecache pages.
+\subsection{Exp 2.2: Ftrace Overhead for KSM}
+\label{sec-3_3}
+
+Since we are recording all KSM events (just for few experiments only) whats the overhead of that?
+1GB/minute data collected.
+\subsection{Exp 3: Page sharing over time}
+\label{sec-3_4}
+
+Run some benchmarks and record pages shared over the duration of benchmark. Also record \textbf{KSM overhead}.
+Reason: Show that KSM overhead is significant enough, thus implying the need for some optimizations.
+Setup: (2) VMs running benchmarks. KSM being profiled using perf.
+
+(1)
+\section{Lookahead optimization}
+\label{sec-4}
+
+  
+\subsection{Exp 4: Lookahead success}
+\label{sec-4_1}
+
+Run benchmarks on VMs (1,2,3) to on and record lookahead successes. Also record \textbf{KSM overhead}
+\textbf{Compare vanilla KSM overhead with lookahead-optimization}
+\subsection{Exp 5: Substrings in shared-map.}
+\label{sec-4_2}
+
+Record consecutive pages being shared in some benchmarks.
+Reason : justify why lookahead works.
+Setup: tracedump analysis simple python script 
+
+   (3)
+\section{Problem of double-caching}
+\label{sec-5}
+\subsection{Exp 6: Memory savings with exclusive caches}
+\label{sec-5_1}
+
+How many pages are there in both places?
+Setup : Benchmarks on VMs.
+\subsection{Exp 7: Overhead of ksm-exclusive-cache}
+\label{sec-5_2}
+
+Run benchmarks on VMs to record KSM overhead (with ex cache)
+Reason : scanning vast host page cache could be significant overhead.Also savings might help.
+
+Some caching theory references.
+   (1)
+\section{Qualitative survey of dynamic memory management for VMs.}
+\label{sec-6}
+\subsection{Exp 8: Memory mountains}
+\label{sec-6_1}
+
+Look at this problem like L1/2 cache , and build mem-mountains in these cases:
+(normal ; no guest cache ; no host cache ; swap as ramdisk )
+Setup : could use IOZone or randal bryant's simple program.
+Reason : Demonstrate the latencies/throughput of various caches. 
+\textbf{This depends on lots of factors like IO schedulers, FS, virtual disk layout etc. Do for any one, for now.}
+
+\end{document}

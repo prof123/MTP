@@ -1,25 +1,33 @@
-An analysis of Inter-VM page sharing for KVM
 * Title
 Improving memory management in Virtual environments using Page Sharing
 
 * Introduction
-Memory is one of the important physical resources in virtualized environments. Virtualization enables us to run multiple Operating Systems (one in each Virtual Machine) on a single physical machine. One of the key drivers of Virtual hosting and cloud computing is the ability of hypervisors to overcommit resources. That is, Virtual machines are given resources in excess of what is actually available.
-In this report, we consider the problem of memory overcommitment, since we believe that memory is almost always the resource with the most contention. Unlike CPU and network, memory is non-renewable. Moreover, the optimality of it's allocation is critical because of the non-linear nature of the penalty , in the form of expensive, disk-seek-laden page-faults. 
+Memory is one of the important physical resources in virtualized environments. Virtualization enables us to run multiple Operating Systems (one in each Virtual Machine) on a single physical machine. One of the key drivers of Virtual hosting and cloud computing is the ability of hypervisors to overcommit resources. That is, virtual machines are given resources in excess of what is actually available.
+
+In this report, we consider the problem of memory overcommitment. Unlike CPU and network, memory is non-renewable. Virtual Machines are given a fixed amount of available physical memory when they are created/launched. This makes it imperative to provision memory carefully. Moreover, the optimality of it's allocation is critical because of the non-linear nature of the penalty , in the form of expensive, disk-seek-laden page-faults. 
+
 
 Our contributions are 2 fold: 
-1. We describe a set of improvements to KSM content-based-page-sharing, and show their impact on performance .
-2. We show that the KSM page-sharing infrastructure is a powerful tool for improving memory management in the host and guests. Here, we make 2 important contributions:
-1. We use page-sharing infrastructure to implement an exclusive page-cache. That is, the host and guest page caches do not have the same content.
-2. 
+1. We describe a set of improvements to KSM content-based-page-sharing, and show their impact on performance with microbenchmarks and some real-world workloads. These improvements are particularly effective in the case of desktop VMs running on a single physical server.
+2. We show that the page-sharing infrastructure is a powerful tool for improving memory management in virtualized setups. Here, we make 2 important contributions:
+1. We use page-sharing infrastructure to implement an exclusive page-cache. That is, the host and guest page caches do not have the same content. We show that double-caching is a serious problem affecting performance and memory resource-utilization, and how our solution impacts the availability of memory.
+
 
 * Motivation
-One of the benefits of virtualization is that it permits overcommitment of physical resources. This works because servers are typically woefully underutilized. This works ideally for overcommiting CPU and networking resources. However, the total memory in a system is fixed, and Guest operating systems expect to be able access all the memory they 'see' at boot-time. [hotswap and pluggable memory will be discussed later].
-Overcommiting memory is then an important trick if we seek to improve server consolidation. 
+One of the benefits of virtualization is that it permits overcommitment of physical resources. This works because servers are typically underutilized (they have far more physical resources than required). The ability to virtualize allows us to consolidate multiple machines on a single physical machine by running them as Virtual machines, run by a hypervisor(or Virtual machine monitor).
+
+This works ideally for overcommiting CPU and networking resources. However, the total memory in a system is fixed, and Guest operating systems expect to be able access all the memory they 'see' at boot-time. [hotswap and pluggable memory will be discussed later].
+Overcommiting memory is thus an important tool if we seek to improve server consolidation. 
 While CPU,network usage on idle workloads can be exploited to increase the number of VMs running on a physical machine because they are inherently shared resources and operating systems and processes are aware of their shared nature. Kernels ofcourse do not expect their physical memory (of the machine) to belong to someone else. 
 Furthermore, memory is seldom 'idle' or free. Operating systems make all effort to make full use of available physical memory. Even if the system working set isnt large enough, the rest of the memory is going to be used for caching files and other IO data. 
 One approach is implementing the same virtual memory abstraction that processes are forced to use. 
 The only difference is that the OS kernel is the process, and the hypervisor pages out/in guest physical memory. The disadvantages of this approach are several, as highlighted in [waldspurger].
-Current VMMs have no way of knowing which page to swap out. Bigger performance problems arise when both the host and the guest swap out the page. In this case even the guest swapout will incur 2 IO accesses!
+
+Furthermore, the traditional memory-management techniques(paging) and infrastructure(page-caches, LRU lists, etc) do not ideally fit into the virtual setup. 
+
+Hypervisor memory management typically uses user-inputs and heuristics to allocate memory to guests. Paging and Ballooning provide for dynamism. However both these approaches are invasive and do not faithfully provide a reasonable approximation to the actual physical system.
+
+Current VMMs have no way of knowing which page to swap out. Bigger performance problems arise when both the host and the guest swap out the page. In this case even the guest swapout will incur 2 IO accesses.
   
 
 
@@ -66,6 +74,35 @@ to mapping the wrong physical page to an address space of a process,
 something which is a fundamental task of Operating Systems.
 
 * KSM 
+KSM (Kernel Samepage Merging) is a scanning based CBPS tool. KSM is a kernel-thread which runs on the host system and periodically scans guest VM memory regions looking for identical pages.
+Once two pages are found to be the same, they are replaced by a single KSM page. This new page is COW protected.
+For detecting identical pages, KSM uses a red-black tree of pages. Each node is a page, and the nodes are ordered according to the page contents. This guarantees an O(log(n)) search+insert for pages.
+KSM maintains 2 search-trees. The stable tree and the unstable tree. Each page which belongs to a region registered with KSM can be one of 3 states:
+Present in stable tree - "shared pages"
+Present in unstable tree - "unshared pages" 
+Not present in any tree - "volatile pages"
+
+The unstable tree is used for page comparison within a single pass, and is destroyed after the completion of a pass. The reason is that the pages in the unstable tree are not write-protected, and are inserted into the tree based on their content at the time of insertion. Once a page has been inserted, its contents may change. This approach leads to false-negatives. There are no false positives in KSM, because pages are locked and COWed upon sharing. If an attempt to write a KSM page is made, the sharing is immediately broken.
+
+The number of pages in a system can be quite large, and thus even the unstable tree may get prohibitively large and difficult to maintain and search. To alliveate this problem, KSM does not insert frequently changing pages (volatile pages) into the unstable tree. These pages are thus untracked.
+To determine volatility, a checksum (jhash2) is used to compare the page contents with the previous KSM scan iteration. If the page checksum has changed between scans, it is deemed volatile and we move onto the next page.
+
+This process goes on repeatedly, and thus has a consistant impact on the performance of the system. KSM typically consumes between 10-20% CPU on a single CPU core. 
+
+There is a clear CPU-overhead vs sharing trade-off here, and this is true for any scanning-based approach, as mentioned earlier. We can make KSM more aggressive by increasing the number of pages scanned before sleeping, and reducing the amount of time spent sleeping between two passes. 
+Therefore we will consider host-cpu-% (in particular the CPU usage of the KSM thread) and the amount of pages shared (and hence the memory reclaimed).
+
+A more comprehensive cost-model will be presented later in section . 
+
+** KSM comments
+[Good bad points]
+KSM, although almost exlcusively used by KVM guests is implemented as a general-purpose memory-scanning page-sharing tool. Any process wishing to share its common pages with other such willing processes can mark its anonymous areas as VM_MERGEABLE. Typically this is done by passing a flag during malloc. 
+In the context of KVM, this flag is set by qemu when it is allocating memory (using malloc) for guests to run in. It is important to note here that in the KVM/QEMU setup, virtual machine physical memory is just a malloc'ed memory area in the guest. 
+[Insert figure here?]
+
+Some design aspects of KSM, like the use of binary trees instead of hash-tables, and the lack of any heuristics help in work in any environment and ensure decent average-case performance while avoiding large worst-case penalties. 
+
+
 
 * Mem Layout
 The key insight of this document/report is that not all pages are the
@@ -90,7 +127,7 @@ We will now look at each category, and give reasons/justifications for
 sharing/not sharing pages in a particular category. In the future
 sections, we seek to give experimental justifications of our claims.
 
-*** KernelMapped: This includes kernel text+data+stack, as well as any
+** KernelMapped: This includes kernel text+data+stack, as well as any
 other memory region not available to guest user processes. This includes
 memory reserved by BIOS, DMA, other kernel buffers etc. 
 These pages are sharable to a large extent, because typically
@@ -102,11 +139,11 @@ Also since the amount of kernel memory is small, the tradeoff between
 increasing memory sharing and the associated security risks seems to
 tilt in favour of not sharing kernel memory regions.
 
-*** Anonymous
+** Anonymous
+	
+** Mapped
 
-*** Mapped
-
-*** PageCache
+** PageCache
 We claim that pagecache pages should not be shared between VMs. By
 their very nature, contents of pagecache pages are ephemeral and just
 a cache for files on disk. Pagecache pages are also dropped first
@@ -148,7 +185,7 @@ With our modifications, we bring it down, while maintaining effective
 page sharing. 
 
 
-*** Free
+** Free
 
 
 * Sharing Model
@@ -182,8 +219,9 @@ the expected number of shared pages maximum.
 ** Substrings
 Assume there are 2 VMs with reasonably high sharing. As the previous analysis(TODO) showed, lot of sharing is 'organized' neatly by page flags. In particular, if we discard for shared pages of the cached variety (page cache / slab etc) then most of the sharing is of pages mapped to same files on disk (program text sections etc), or same malloced pages (same applications creating the same 'data'). 
 
-In such scenarios the following assumption holds to a large degree:
+In such scenarios the following scenario occours frequently:
 Assume page number X of VM_2 is shared with X' of VM_1, Then with a high probability, X+1 will be shared with X`+1 .
+
 Having given the explanation of the scenarios in which this holds true, we now give an experimental validation.
 
 The main problem with the substring 'peek' optimization is that it only is effective when the pages are shared for the first time. After that, KSM will do a stable tree search before comparing. 
@@ -195,7 +233,7 @@ This can be combined with the previous page-cache rule.
 I.E : page cache pages are only compared *once* (lookahead). If they dont match, dont touch them at all. 
 How to implement this?. Need to atleast goto start of the file?
 
-*** Implementation
+** Implementation
 This lookahead heuristic was implemented in KSM. <See below for results>. 
 We found that upto one third of comparisons can be eliminated.
 
@@ -271,7 +309,7 @@ Benefits of only_mapped:
 * Conclusion
 
 
-
+  
 * References
 [pv] A Paravirtualized Approach to Content-Based Page Sharing 
 //Uses content-addressed page tables instead of SPTEs. Weird!

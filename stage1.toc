@@ -1,0 +1,52 @@
+\contentsline {section}{\numberline {1}Introduction}{1}{section.1}
+\contentsline {section}{\numberline {2}Motivation - Overcommitment}{2}{section.2}
+\contentsline {subsection}{\numberline {2.1}Why sharing}{2}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Other overcommitment approaches}{3}{subsection.2.2}
+\contentsline {section}{\numberline {3}Page Sharing}{3}{section.3}
+\contentsline {subsection}{\numberline {3.1}Scanning vs Disk based sharing}{3}{subsection.3.1}
+\contentsline {section}{\numberline {4}KSM}{3}{section.4}
+\contentsline {subsection}{\numberline {4.1}KSM comments}{4}{subsection.4.1}
+\contentsline {subsection}{\numberline {4.2}Exp 1: KSM effectiveness}{5}{subsection.4.2}
+\contentsline {section}{\numberline {5}Analysis of shared pages}{5}{section.5}
+\contentsline {subsection}{\numberline {5.1}By flags}{5}{subsection.5.1}
+\contentsline {subsection}{\numberline {5.2}KernelMapped: This includes kernel text+data+stack, as well as any}{5}{subsection.5.2}
+\contentsline {subsection}{\numberline {5.3}Anonymous}{6}{subsection.5.3}
+\contentsline {subsection}{\numberline {5.4}Mapped}{6}{subsection.5.4}
+\contentsline {subsection}{\numberline {5.5}PageCache}{6}{subsection.5.5}
+\contentsline {subsection}{\numberline {5.6}Free}{6}{subsection.5.6}
+\contentsline {subsection}{\numberline {5.7}Exp 2: Pages shared by flag type}{6}{subsection.5.7}
+\contentsline {subsection}{\numberline {5.8}Exp 2.1 : KSM with no pagecache pages}{7}{subsection.5.8}
+\contentsline {subsection}{\numberline {5.9}Exp 3: Page sharing over time}{7}{subsection.5.9}
+\contentsline {section}{\numberline {6}Sharing Model}{7}{section.6}
+\contentsline {section}{\numberline {7}Lookahead optimization}{7}{section.7}
+\contentsline {subsection}{\numberline {7.1}Implementation}{8}{subsection.7.1}
+\contentsline {subsection}{\numberline {7.2}Tracing}{8}{subsection.7.2}
+\contentsline {subsection}{\numberline {7.3}Implementation and analysis}{8}{subsection.7.3}
+\contentsline {subsection}{\numberline {7.4}Results}{8}{subsection.7.4}
+\contentsline {subsection}{\numberline {7.5}Exp 4: Lookahead success}{8}{subsection.7.5}
+\contentsline {subsection}{\numberline {7.6}Exp 5: Substrings in shared-map.}{9}{subsection.7.6}
+\contentsline {section}{\numberline {8}Problem of double-caching}{9}{section.8}
+\contentsline {subsection}{\numberline {8.1}Existing approaches}{9}{subsection.8.1}
+\contentsline {subsection}{\numberline {8.2}Importance of exclusive caches.}{9}{subsection.8.2}
+\contentsline {subsection}{\numberline {8.3}Exp 6: Memory savings with exclusive caches}{9}{subsection.8.3}
+\contentsline {subsection}{\numberline {8.4}Exp 7: Overhead of ksm-exclusive-cache}{9}{subsection.8.4}
+\contentsline {subsection}{\numberline {8.5}Motivation}{9}{subsection.8.5}
+\contentsline {subsection}{\numberline {8.6}Related work}{9}{subsection.8.6}
+\contentsline {subsection}{\numberline {8.7}KSM solution}{10}{subsection.8.7}
+\contentsline {section}{\numberline {9}KSM-implementation of double-caching}{10}{section.9}
+\contentsline {subsection}{\numberline {9.1}Implementation and analysis}{10}{subsection.9.1}
+\contentsline {subsection}{\numberline {9.2}Results}{10}{subsection.9.2}
+\contentsline {subsection}{\numberline {9.3}Exp 7: Number of pages evicted out due to duplicates}{10}{subsection.9.3}
+\contentsline {subsection}{\numberline {9.4}Exp 8: Overhead of cache eviction}{10}{subsection.9.4}
+\contentsline {section}{\numberline {10}Qualitative survey of dynamic memory management for VMs.}{10}{section.10}
+\contentsline {subsection}{\numberline {10.1}Exp 8: Memory mountains}{10}{subsection.10.1}
+\contentsline {subsection}{\numberline {10.2}Tmem: cleancache, ramszwap, etc.}{10}{subsection.10.2}
+\contentsline {subsection}{\numberline {10.3}Collab2}{10}{subsection.10.3}
+\contentsline {subsection}{\numberline {10.4}Ballooning and Hotplug}{10}{subsection.10.4}
+\contentsline {section}{\numberline {11}Conclusion}{11}{section.11}
+\contentsline {section}{\numberline {12}Future Work}{11}{section.12}
+\contentsline {section}{\numberline {13}References}{11}{section.13}
+\contentsline {subsection}{\numberline {13.1}Caching}{11}{subsection.13.1}
+\contentsline {subsection}{\numberline {13.2}General}{11}{subsection.13.2}
+\contentsline {subsection}{\numberline {13.3}page sharing}{11}{subsection.13.3}
+\contentsline {subsection}{\numberline {13.4}Memory}{12}{subsection.13.4}

@@ -1,0 +1,74 @@
+
+* Page Sharing
+Survey of everything. Some history?
+** Scanning vs Disk based sharing
+2 competing approaches.
+   (2)
+* KSM
+Diagram of operations, history, and some implementation details
+Focus on generic nature
+** Exp 1: KSM effectiveness
+Small experiment which shows that KSM shares large % of same pages. Done earlier in fingerprinting project.
+Expected result : > 90% sharing of KSM, so good enough.
+Reason : establish some ground truths: KSM _works_ .
+Setup : Random workload (doesnt matter) and take fingerprint and see KSM shar% . Run with 1,2,3 VMs.
+   (1)
+* Analysis of shared pages
+
+** Exp 2: Pages shared by flag type -later
+Run some benchmarks (static VMs just booted up ; Kernbench ; HTTP-perf) and see what kinds of pages are shared by flag type.
+Reason: establish some ground truths : sharing is _feasible_ . Also answer : what _kinds_ of pages are shared?
+Setup: (1,2,3,5) VMs with different OS running same benchmarks. (diff VMs ; same kernel ; same /var/www) 
+
+** Exp 2.1 : KSM with no pagecache pages -later
+Run KSM but skip all guest pagecache pages.
+
+** Exp 2.2: Ftrace Overhead for KSM -notdoing
+Since we are recording all KSM events (just for few experiments only) whats the overhead of that?
+1GB/minute data collected.
+
+** Exp 3: Page sharing over time -ok done
+Run some benchmarks and record pages shared over the duration of benchmark. Also record *KSM overhead*.
+Reason: Show that KSM overhead is significant enough, thus implying the need for some optimizations.
+Setup: (2) VMs running benchmarks. KSM being profiled using perf.
+
+(1)
+* Lookahead optimization
+  
+** Exp 4: Lookahead success - desktop,install,kcompile. DONE
+Run benchmarks on VMs (1,2,3) to on and record lookahead successes. Also record *KSM overhead*
+*Compare vanilla KSM overhead with lookahead-optimization*
+
+** Exp 5: Substrings in shared-map. - simple todo
+Record consecutive pages being shared in some benchmarks.
+Reason : justify why lookahead works.
+Setup: tracedump analysis simple python script 
+
+(3)
+* Problem of double-caching
+** Exp 6: Memory savings with exclusive caches - done for binnie iozone kcompile desktop
+How many pages are there in both places?
+Setup : Benchmarks on VMs.
+
+** Exp 7: Overhead of ksm-exclusive-cache - done
+Run benchmarks on VMs to record KSM overhead (with ex cache)
+Reason : scanning vast host page cache could be significant overhead.Also savings might help.
+
+Some caching theory references.
+(1)
+* Qualitative survey of dynamic memory management for VMs.
+** Exp 8: Memory mountains - done? iozone bonnie?
+Look at this problem like L1/2 cache , and build mem-mountains in these cases:
+(normal ; no guest cache ; no host cache ; swap as ramdisk )
+Setup : could use IOZone or randal bryant's simple program.
+Reason : Demonstrate the latencies/throughput of various caches. 
+*This depends on lots of factors like IO schedulers, FS, virtual disk layout etc. Do for any one, for now.*
+
+
+what i have
+
+* bonnie1 ,2,3,4 with no excache vs excache.
+* iozone with various cache policies.
+* bonnie with various cache policies.
+* kcompile 4 with and without ksm.
+

@@ -1,0 +1,53 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}
+\BOOKMARK [1][-]{section.2}{Memoy Overcommitment}{}
+\BOOKMARK [2][-]{subsection.2.1}{Why sharing}{section.2}
+\BOOKMARK [2][-]{subsection.2.2}{Other overcommitment approaches}{section.2}
+\BOOKMARK [1][-]{section.3}{Page Sharing}{}
+\BOOKMARK [2][-]{subsection.3.1}{Scanning vs Disk based sharing}{section.3}
+\BOOKMARK [1][-]{section.4}{KSM}{}
+\BOOKMARK [2][-]{subsection.4.1}{Algorithm}{section.4}
+\BOOKMARK [2][-]{subsection.4.2}{KSM comments}{section.4}
+\BOOKMARK [2][-]{subsection.4.3}{Exp 1: KSM effectiveness}{section.4}
+\BOOKMARK [1][-]{section.5}{Analysis of shared pages}{}
+\BOOKMARK [2][-]{subsection.5.1}{By flags}{section.5}
+\BOOKMARK [2][-]{subsection.5.2}{KernelMapped: This includes kernel text+data+stack, as well as any}{section.5}
+\BOOKMARK [2][-]{subsection.5.3}{Anonymous}{section.5}
+\BOOKMARK [2][-]{subsection.5.4}{Mapped}{section.5}
+\BOOKMARK [2][-]{subsection.5.5}{PageCache}{section.5}
+\BOOKMARK [2][-]{subsection.5.6}{Free}{section.5}
+\BOOKMARK [2][-]{subsection.5.7}{Exp 2: Pages shared by flag type}{section.5}
+\BOOKMARK [2][-]{subsection.5.8}{Exp 2.1 : KSM with no pagecache pages}{section.5}
+\BOOKMARK [2][-]{subsection.5.9}{Exp 3: Page sharing over time}{section.5}
+\BOOKMARK [1][-]{section.6}{Sharing Model}{}
+\BOOKMARK [1][-]{section.7}{Lookahead optimization}{}
+\BOOKMARK [2][-]{subsection.7.1}{Implementation}{section.7}
+\BOOKMARK [2][-]{subsection.7.2}{Tracing}{section.7}
+\BOOKMARK [2][-]{subsection.7.3}{Implementation and analysis}{section.7}
+\BOOKMARK [2][-]{subsection.7.4}{Results}{section.7}
+\BOOKMARK [2][-]{subsection.7.5}{Exp 4: Lookahead success}{section.7}
+\BOOKMARK [2][-]{subsection.7.6}{Exp 5: Substrings in shared-map.}{section.7}
+\BOOKMARK [1][-]{section.8}{Problem of double-caching}{}
+\BOOKMARK [2][-]{subsection.8.1}{Existing approaches}{section.8}
+\BOOKMARK [2][-]{subsection.8.2}{Importance of exclusive caches.}{section.8}
+\BOOKMARK [2][-]{subsection.8.3}{Exp 6: Memory savings with exclusive caches}{section.8}
+\BOOKMARK [2][-]{subsection.8.4}{Exp 7: Overhead of ksm-exclusive-cache}{section.8}
+\BOOKMARK [2][-]{subsection.8.5}{Motivation}{section.8}
+\BOOKMARK [2][-]{subsection.8.6}{Related work}{section.8}
+\BOOKMARK [2][-]{subsection.8.7}{KSM solution}{section.8}
+\BOOKMARK [1][-]{section.9}{KSM-implementation of double-caching}{}
+\BOOKMARK [2][-]{subsection.9.1}{Implementation and analysis}{section.9}
+\BOOKMARK [2][-]{subsection.9.2}{Results}{section.9}
+\BOOKMARK [2][-]{subsection.9.3}{Exp 7: Number of pages evicted out due to duplicates}{section.9}
+\BOOKMARK [2][-]{subsection.9.4}{Exp 8: Overhead of cache eviction}{section.9}
+\BOOKMARK [1][-]{section.10}{Qualitative survey of dynamic memory management for VMs.}{}
+\BOOKMARK [2][-]{subsection.10.1}{Exp 8: Memory mountains}{section.10}
+\BOOKMARK [2][-]{subsection.10.2}{Tmem: cleancache, ramszwap, etc.}{section.10}
+\BOOKMARK [2][-]{subsection.10.3}{Collab2}{section.10}
+\BOOKMARK [2][-]{subsection.10.4}{Ballooning and Hotplug}{section.10}
+\BOOKMARK [1][-]{section.11}{Conclusion}{}
+\BOOKMARK [1][-]{section.12}{Future Work}{}
+\BOOKMARK [1][-]{section.13}{References}{}
+\BOOKMARK [2][-]{subsection.13.1}{Caching}{section.13}
+\BOOKMARK [2][-]{subsection.13.2}{General}{section.13}
+\BOOKMARK [2][-]{subsection.13.3}{page sharing}{section.13}
+\BOOKMARK [2][-]{subsection.13.4}{Memory}{section.13}

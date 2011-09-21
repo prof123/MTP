@@ -30,7 +30,7 @@ Our contributions are 2 fold:
 \item We use page-sharing infrastructure to implement an exclusive page-cache. That is, the host and guest page caches do not have the same content. We show that double-caching is a serious problem affecting performance and memory resource-utilization, and how our solution impacts the availability of memory.
 \end{enumerate}
 
-\section{Memoy  Overcommitment}
+\section{Memory  Overcommitment}
 
 One of the benefits of virtualization is that it permits overcommitment of physical resources. This works because servers are typically underutilized (they have far more physical resources than required). The ability to virtualize allows us to consolidate multiple machines on a single physical machine by running them as Virtual machines, run by a hypervisor(or Virtual machine monitor).
 
@@ -308,32 +308,93 @@ Thus, the expected number of comparisons is minimized, while keeping
 the expected number of shared pages maximum. 
 
 \section{Lookahead optimization}
+
+\subsection{Exp 5: Substrings in shared-map.}
+Record consecutive pages being shared in some benchmarks.
+Reason : justify why lookahead works.
+Setup: tracedump analysis simple python script 
+
 \subsection{Tracing}
-To get a better understanding of KSM sharing, the KSM code was instrumented with static tracepoints using the kernel TRACE\_EVENTS feature. Trace events allows static tracepoints to be placed anywhere in the kernel code and are very light-weight in nature. We primarily use trace-events to generate a lot of pritnk output. Every page scanned is traced, as are all the operations (tree search/insert) it goes through. This generates a significant amount of trace-log output (about 0.5 GB/minute). 
-We have used the information obtained from the detailed trace logs to improve the understanding of KSM operations as well as page-sharing in general.
+To get a better understanding of KSM sharing, the KSM code was instrumented with static tracepoints using the kernel TRACE\_EVENTS feature. Trace events allows ftrace static tracepoints to be placed anywhere in the kernel code and are very light-weight in nature. We primarily use trace-events to generate a lot of pritnk output. Every page scanned is traced, as are all the operations (tree search/insert) it goes through. This generates a significant amount of trace-log output (about 0.5 GB/minute). 
+We have used the information obtained from the detailed trace logs to improve our understanding of KSM operations as well as page-sharing in general.
 
 \subsection{Lookahead}
-One of the key insights from the trace logs is this: shared pages are often clustered together, occouring consecutively. 
-This can be seen from this figure.
-\subsection{FIgure: shared pages shown as red dots }
-Assume there are 2 VMs with reasonably high sharing. As the previous analysis(TODO) showed, lot of sharing is `organized' neatly by page flags. In particular, if we discard for shared pages of the cached variety (page cache / slab etc) then most of the sharing is of pages mapped to same files on disk (program text sections etc), or same malloced pages (same applications creating the same `data'). 
+Using the KSM trace logs, it can be observed that shared pages are often clustered together, occouring consecutively. Thus shared pages have a high spatial locality : If a page is shared, then the next page is also shareable with a high probability. 
+This can be seen from this figure (SOME FIGURE) where the pages which are shared with some other page are shown, for 2 VMs.
 
-In such scenarios the following scenario occours frequently:
-Assume page number X of $VM_2$ is shared with X' of $VM_1$, Then with a high probability, X+1 will be shared with X`+1 .
+We can represent the page contents as alphabets, and the memory contents of a VM are the strings.
+This string representation is a natural way of expressing the page-sharing problem in general. The degree of sharing is equal to the number of common characters in two strings.  In this analogy, the characters in a string can change, since the contents of a page may change at any time. However as far as quantifying page sharing is concerned, we consider the pages being shared at a particular instant of time.
 
-Having given the explanation of the scenarios in which this holds true, we now give an experimental validation.
+In the context of the previous observation, that the shared pages are clustered, we can say that the VM-strings have a large number of common substrings. 
 
-The main problem with the substring `peek' optimization is that it only is effective when the pages are shared for the first time. After that, KSM will do a stable tree search before comparing. 
-Thus a lot of overhead is incurred even in low page-write/high sharing environments. Each stable tree search is a log(s) operation, and for S sharing pages, we have Slog(s). 
+The presence of substrings can be explained by the fact that a large amount of common pages are courtesy of common files. These files can be programs, common data, etc. Thus when the files are mapped into memory, if they are the same (have the same contents), then they will have a large number of common pages too. Furthermore, these pages will be consecutive (since files loaded into memory are typically mapped into consecutive pages as far as possible by operating systems).
 
-How to reduce this? The same trick can be used! If a page is a KSM page (testing for this is O(1), just check the flags), then we peek ahead anyway. If the peeked page is identical (one memcmp) and the rmap is stable, we're done! So even in this case we have reduced the operation to O(1) comparisons instead of log(s).
+\subsection{KSM Implementation of lookahead}
 
-This can be combined with the previous page-cache rule.
-I.E : page cache pages are only compared \textbf{once} (lookahead). If they dont match, dont touch them at all. 
-How to implement this?. Need to atleast goto start of the file?
+The presence of spatial locality leads to a very natural improvement in the KSM algorithm. If a page X is merged with another page Y, then we check if page X+1 can be merged with Y+1, before searching in the stable and unstable trees. In other words, we do a lookahead and see if the pages are common, before doing a general search. 
+A more detailed algorithm follows:
 
-\subsection{Implementation}
+If(equal(page Z, previous_matched_page+1)) :
+     merge
+else :
+   Search trees for Z 
+   If matched with W 
+        previous_matched_page = W
 
+If(equal(Page X , Page Y)) :
+   previous_matched_page = Y
+
+Analysis:
+The lookahead optimization reduces the average cost of searching for a page. Assuming that the probability of a page being duplicate file is $p$, the expected cost with the lookahead optimization in place is now 
+$p*Cost(merging) + (1-p)*Cost(tree search)$
+
+The lookahead tricky is particularly effective when the pages are shared for the first time. Once the pages are merged, there will be no additional overhead in the subsequent passes (provide they have not changed and the COW is not broken). To detect whether a page is shared/merged, KSM simply checks a flag(PAGE_KSM), and moves on to the next page if they are. 
+Thus the lookahead optimization reduces search costs only when the pages can be potentially shared. Once the sharing is established, it plays no role (and hence can offer no improvements) in the subsequent passes. 
+
+\subsection{Exp 4: Lookahead success}
+
+Run benchmarks on VMs (1,2,3) to on and record lookahead successes. Also record \textbf{KSM overhead}
+\textbf{Compare vanilla KSM overhead with lookahead-optimization}
+
+\subsection {Performance of lookahead}
+The main advantage of lookahead of is reduced search cost, and hence a reduction in KSM overhead is to be expected. The KSM overhead is measured by the CPU-\% of the ksmd thread.
+We compared vanilla-KSM with KSM with lookahead on the same workloads and recorded the ksm page sharing statistics along with the lookahead successes, and the ksm overhead on the host.
+The workloads were run on 2 VMs and were:
+STATIC: The 2 VMs are booted up. The VMs in question were ubuntu-10.04-server with 1G of ram allocated.
+KCOMPILE: The standard kernel-compile benchmark was run in the 2VMs. 
+DESKTOP: The 2VMs were desktop VMs (Ubuntu-10.04-desktop) and a typical user session was simulated.
+
+
+Results: Lookahead gives the most improvements for the DESKTOP workload. This is because desktop environments load a large number of common-files into memory on bootup (X11 fonts, graphical environment, etc).
+The surprising result is the increase in shared pages due to lookahead. This is surprising because without the lookahead the pages would have been merged anyway, albeit after a tree search. The success of lookahead to increase the shared pages can be explained thus:
+Because lookahead decreases the average cost of searching for a duplicate page, the scanning rate of KSM increases slightly. The increase in scanning rate results in increased page-sharing, as discussed in PREVIOUS DISCUSSION ON RATE VS SHARING.
+Correspondigly, the KSM overhead (with lookahead enabled) also \emph{increases}. (Also as evidence of increased scanning rate).
+
+The lack of success of lookahead in the case of kernel-compile(there are a large number of shared pages and common files in this workload ) also has a subtle explanation. 
+Even though there are a large number of common files, most of them are small (less than a page size). Also the files are not explicitly mmapped or read into memory by the compiler. Instead they are present in the page-cache. Since the duplicate pages are present largely in the page-cache, they are not contiguous. This is the reason that lookahead cannot detect duplicates 
+
+Thus even though the benchmark accesses the same files in the same sequence, because they are scattered differently in their respective page-caches, lookahead is not very successful.
+
+Experiment conclusion:
+Lookahead does not add any significant overhead to KSM, while increasing the total page sharing.
+
+%Assume there are 2 VMs with reasonably high sharing. As the previous analysis(TODO) showed, lot of sharing is `organized' neatly by page flags. In particular, if we discard for shared pages of the cached variety (page cache / slab etc) then most of the sharing is of pages mapped to same files on disk (program text sections etc), or same malloced pages (same applications creating the same `data'). 
+
+%In such scenarios the following scenario occours frequently:
+%Assume page number X of $VM_2$ is shared with X' of $VM_1$, Then with a high probability, X+1 will be shared with X`+1 .
+
+%Having given the explanation of the scenarios in which this holds true, we now give an experimental validation.
+
+%It is effective when the pages are shared for the first time. After that, KSM will do a stable tree search before comparing. 
+%Thus a lot of overhead is incurred even in low page-write/high sharing environments. Each stable tree search is a log(s) operation, and for S sharing pages, we have Slog(s). 
+
+%How to reduce this? The same trick can be used! If a page is a KSM page (testing for this is O(1), just check the flags), then we peek ahead anyway. If the peeked page is identical (one memcmp) and the rmap is stable, we're done! So even in this case we have reduced the operation to O(1) comparisons instead of log(s).
+
+%This can be combined with the previous page-cache rule.
+%I.E : page cache pages are only compared \textbf{once} (lookahead). If they dont match, dont touch them at all. 
+%How to implement this?. Need to atleast goto start of the file?
+
+\subsection {junk}
 This lookahead heuristic was implemented in KSM. <See below for results>. 
 We found that upto one third of comparisons can be eliminated.
 
@@ -345,33 +406,37 @@ Lookahead : lookahead -> $insert_{stable}$-> KSM_default.
 The optimization does not incur any extra overhead in the case where the lookahead fails.
 
 
-\begin{enumerate}
-\item Pattern chages with Time
-\item 
-\end{enumerate}
-
-\subsection{Tracing}
-
-\subsection{Implementation and analysis}
-
-   (log u etc)
-\subsection{Results}
-
-\subsection{Exp 4: Lookahead success}
-
-Run benchmarks on VMs (1,2,3) to on and record lookahead successes. Also record \textbf{KSM overhead}
-\textbf{Compare vanilla KSM overhead with lookahead-optimization}
-
-
-\subsection{Exp 5: Substrings in shared-map.}
-
-Record consecutive pages being shared in some benchmarks.
-Reason : justify why lookahead works.
-Setup: tracedump analysis simple python script 
-
-   (3)
 
 \section{Problem of double-caching}
+In this section we consider the behaviour and performance of the page-caches of the host and the guests in typical KVM setups. The discussion in this section is relevant only to KVM setups, and not immediately applicable to XEN, for example.
+There are 2 levels of page-cache in typical KVM setups : one is maintained by the guest OSes in their own pseudo-physical address-space. The other is the maintained by the kernel at the host. 
+All IO in the Virtual Machines goes through the page cache at the host (hereafter referred as host-page-cache). A typical IO request generated by the VM causes a trap, which calls the QEMU userspace process, which handles the IO. In the emulated-disk case, QEMU performs the IO operation, and notifies the guest (via KVM). 
+
+A glaring problem in this setup is that the same disk block is cached in 2 places: the host page cache, and the guest's !.
+
+We can see the amount of memory utilized by the page-cache in the host when various workloads in the VMs are run in FIGURE X.
+
+\subsection {QEMU caching modes}
+Virtual disks can be mounted in 4 caching modes in QEMU.
+None: uses direct IO
+writeback
+writethrough:
+VirtIO. Although VIRTIO is not strictly a caching mode, but instead a more different IO handling mechanism. Disks mounted as virtio are not emulated by qemu. Instead the host kernel has drivers which directly interact directly with the frontends of the corresponding drivers in the guest VMs.
+Virtio is esentially a ring-buffer implementation. It requires special drivers in the guests. 
+
+To record the double caching, we record the cache size in the host. To see the impact of the caching mode. Since the caching mode primarily impacts IO performance, the workloads used are Bonnie++ and Iozone. The relationship between cache size and guest IO performance is shown HERE. 
+The first set of experiments is with a single VM to measure the performance impact of caching modes.
+The other is with 2VMs with different caching modes to determine interference effects. 
+
+
+Any solution to the exclusive caching problem must strive for a balance between size of the host page cache, size of the guest page cache, and performance of the guests. 
+We can trivially get an exclusive cache by not having either of the host and guest caches, by dropping the caches at regular intervals.
+Another alternative is to emply a balloon module. Ballooning inside a VM will cause it drop some pages, and is a way to reduce the size of the guest-page-cache.
+
+
+\subsection{Results}
+We evaulate the effectiveness of the KSM-exclusive-cache solution. The primary metric here is the amount of free and cached memory on the host(as observed by free/vmstat). 
+The IO benchmarks Iozone and bonnie++ were run on VMs with and without exclusive caches. 
 
 \subsection{Existing approaches}
 

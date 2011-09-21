@@ -1,5 +1,5 @@
 \BOOKMARK [1][-]{section.1}{Introduction}{}
-\BOOKMARK [1][-]{section.2}{Memoy Overcommitment}{}
+\BOOKMARK [1][-]{section.2}{Memory Overcommitment}{}
 \BOOKMARK [2][-]{subsection.2.1}{Why sharing}{section.2}
 \BOOKMARK [2][-]{subsection.2.2}{Other overcommitment approaches}{section.2}
 \BOOKMARK [1][-]{section.3}{Page Sharing}{}
@@ -20,20 +20,23 @@
 \BOOKMARK [2][-]{subsection.5.9}{Exp 3: Page sharing over time}{section.5}
 \BOOKMARK [1][-]{section.6}{Sharing Model}{}
 \BOOKMARK [1][-]{section.7}{Lookahead optimization}{}
-\BOOKMARK [2][-]{subsection.7.1}{Implementation}{section.7}
+\BOOKMARK [2][-]{subsection.7.1}{Exp 5: Substrings in shared-map.}{section.7}
 \BOOKMARK [2][-]{subsection.7.2}{Tracing}{section.7}
-\BOOKMARK [2][-]{subsection.7.3}{Implementation and analysis}{section.7}
-\BOOKMARK [2][-]{subsection.7.4}{Results}{section.7}
+\BOOKMARK [2][-]{subsection.7.3}{Lookahead}{section.7}
+\BOOKMARK [2][-]{subsection.7.4}{KSM Implementation of lookahead}{section.7}
 \BOOKMARK [2][-]{subsection.7.5}{Exp 4: Lookahead success}{section.7}
-\BOOKMARK [2][-]{subsection.7.6}{Exp 5: Substrings in shared-map.}{section.7}
+\BOOKMARK [2][-]{subsection.7.6}{Performance of lookahead}{section.7}
+\BOOKMARK [2][-]{subsection.7.7}{junk}{section.7}
 \BOOKMARK [1][-]{section.8}{Problem of double-caching}{}
-\BOOKMARK [2][-]{subsection.8.1}{Existing approaches}{section.8}
-\BOOKMARK [2][-]{subsection.8.2}{Importance of exclusive caches.}{section.8}
-\BOOKMARK [2][-]{subsection.8.3}{Exp 6: Memory savings with exclusive caches}{section.8}
-\BOOKMARK [2][-]{subsection.8.4}{Exp 7: Overhead of ksm-exclusive-cache}{section.8}
-\BOOKMARK [2][-]{subsection.8.5}{Motivation}{section.8}
-\BOOKMARK [2][-]{subsection.8.6}{Related work}{section.8}
-\BOOKMARK [2][-]{subsection.8.7}{KSM solution}{section.8}
+\BOOKMARK [2][-]{subsection.8.1}{QEMU caching modes}{section.8}
+\BOOKMARK [2][-]{subsection.8.2}{Results}{section.8}
+\BOOKMARK [2][-]{subsection.8.3}{Existing approaches}{section.8}
+\BOOKMARK [2][-]{subsection.8.4}{Importance of exclusive caches.}{section.8}
+\BOOKMARK [2][-]{subsection.8.5}{Exp 6: Memory savings with exclusive caches}{section.8}
+\BOOKMARK [2][-]{subsection.8.6}{Exp 7: Overhead of ksm-exclusive-cache}{section.8}
+\BOOKMARK [2][-]{subsection.8.7}{Motivation}{section.8}
+\BOOKMARK [2][-]{subsection.8.8}{Related work}{section.8}
+\BOOKMARK [2][-]{subsection.8.9}{KSM solution}{section.8}
 \BOOKMARK [1][-]{section.9}{KSM-implementation of double-caching}{}
 \BOOKMARK [2][-]{subsection.9.1}{Implementation and analysis}{section.9}
 \BOOKMARK [2][-]{subsection.9.2}{Results}{section.9}

@@ -11,8 +11,10 @@
 \global \let \hyper@last\relax 
 \fi
 
+\providecommand*\HyPL@Entry[1]{}
+\HyPL@Entry{0<</S/D>>}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}}
-\@writefile{toc}{\contentsline {section}{\numberline {2}Memoy Overcommitment}{1}{section.2}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Memory Overcommitment}{1}{section.2}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Why sharing}{3}{subsection.2.1}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Other overcommitment approaches}{3}{subsection.2.2}}
 \@writefile{toc}{\contentsline {section}{\numberline {3}Page Sharing}{3}{section.3}}
@@ -33,34 +35,37 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {5.9}Exp 3: Page sharing over time}{8}{subsection.5.9}}
 \@writefile{toc}{\contentsline {section}{\numberline {6}Sharing Model}{8}{section.6}}
 \@writefile{toc}{\contentsline {section}{\numberline {7}Lookahead optimization}{9}{section.7}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Implementation}{9}{subsection.7.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.1}Exp 5: Substrings in shared-map.}{9}{subsection.7.1}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {7.2}Tracing}{9}{subsection.7.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Implementation and analysis}{9}{subsection.7.3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}Results}{10}{subsection.7.4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.3}Lookahead}{9}{subsection.7.3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.4}KSM Implementation of lookahead}{10}{subsection.7.4}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {7.5}Exp 4: Lookahead success}{10}{subsection.7.5}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {7.6}Exp 5: Substrings in shared-map.}{10}{subsection.7.6}}
-\@writefile{toc}{\contentsline {section}{\numberline {8}Problem of double-caching}{10}{section.8}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}Existing approaches}{10}{subsection.8.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.2}Importance of exclusive caches.}{10}{subsection.8.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.3}Exp 6: Memory savings with exclusive caches}{10}{subsection.8.3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.4}Exp 7: Overhead of ksm-exclusive-cache}{10}{subsection.8.4}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.5}Motivation}{10}{subsection.8.5}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.6}Related work}{10}{subsection.8.6}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {8.7}KSM solution}{11}{subsection.8.7}}
-\@writefile{toc}{\contentsline {section}{\numberline {9}KSM-implementation of double-caching}{11}{section.9}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {9.1}Implementation and analysis}{11}{subsection.9.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {9.2}Results}{11}{subsection.9.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {9.3}Exp 7: Number of pages evicted out due to duplicates}{11}{subsection.9.3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {9.4}Exp 8: Overhead of cache eviction}{11}{subsection.9.4}}
-\@writefile{toc}{\contentsline {section}{\numberline {10}Qualitative survey of dynamic memory management for VMs.}{11}{section.10}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {10.1}Exp 8: Memory mountains}{11}{subsection.10.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {10.2}Tmem: cleancache, ramszwap, etc.}{11}{subsection.10.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {10.3}Collab2}{11}{subsection.10.3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {10.4}Ballooning and Hotplug}{11}{subsection.10.4}}
-\@writefile{toc}{\contentsline {section}{\numberline {11}Conclusion}{12}{section.11}}
-\@writefile{toc}{\contentsline {section}{\numberline {12}Future Work}{12}{section.12}}
-\@writefile{toc}{\contentsline {section}{\numberline {13}References}{12}{section.13}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {13.1}Caching}{12}{subsection.13.1}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {13.2}General}{12}{subsection.13.2}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {13.3}page sharing}{12}{subsection.13.3}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {13.4}Memory}{12}{subsection.13.4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.6}Performance of lookahead}{10}{subsection.7.6}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {7.7}junk}{11}{subsection.7.7}}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Problem of double-caching}{11}{section.8}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}QEMU caching modes}{11}{subsection.8.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.2}Results}{12}{subsection.8.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.3}Existing approaches}{12}{subsection.8.3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.4}Importance of exclusive caches.}{12}{subsection.8.4}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.5}Exp 6: Memory savings with exclusive caches}{12}{subsection.8.5}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.6}Exp 7: Overhead of ksm-exclusive-cache}{12}{subsection.8.6}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.7}Motivation}{12}{subsection.8.7}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.8}Related work}{12}{subsection.8.8}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.9}KSM solution}{13}{subsection.8.9}}
+\@writefile{toc}{\contentsline {section}{\numberline {9}KSM-implementation of double-caching}{13}{section.9}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.1}Implementation and analysis}{13}{subsection.9.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.2}Results}{13}{subsection.9.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.3}Exp 7: Number of pages evicted out due to duplicates}{13}{subsection.9.3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.4}Exp 8: Overhead of cache eviction}{13}{subsection.9.4}}
+\@writefile{toc}{\contentsline {section}{\numberline {10}Qualitative survey of dynamic memory management for VMs.}{13}{section.10}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.1}Exp 8: Memory mountains}{13}{subsection.10.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.2}Tmem: cleancache, ramszwap, etc.}{13}{subsection.10.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.3}Collab2}{13}{subsection.10.3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.4}Ballooning and Hotplug}{13}{subsection.10.4}}
+\@writefile{toc}{\contentsline {section}{\numberline {11}Conclusion}{13}{section.11}}
+\@writefile{toc}{\contentsline {section}{\numberline {12}Future Work}{14}{section.12}}
+\@writefile{toc}{\contentsline {section}{\numberline {13}References}{14}{section.13}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {13.1}Caching}{14}{subsection.13.1}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {13.2}General}{14}{subsection.13.2}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {13.3}page sharing}{14}{subsection.13.3}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {13.4}Memory}{14}{subsection.13.4}}

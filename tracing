@@ -1,7 +1,0 @@
-THis document describes how to enable and use static tracepoints in the kernel, as it applies to my project.
-
-new trace_event added in <trace/events/ksm.h>
-
-header file included in ksm.c after defining the magic trace .
-
-after that , just use trace_ksm_notify

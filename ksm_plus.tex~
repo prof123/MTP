@@ -1,0 +1,186 @@
+\documentclass{beamer}
+\usepackage{graphicx}
+\usepackage{pgfpages}
+\author{Prateek \\ Advisor: Puru}
+\title{KVM Memory Optimizations}
+
+\subtitle{\emph{Increasing memory density with KSM, and more}}
+\date{March 22, 2011}
+%\advisor{Puru}
+%\setbeameroption{show notes}
+%\setbeameroption{show notes on second screen}
+\begin{document}
+
+\begin{frame}
+ \maketitle
+%\textbf{Increasing memory density with KSM, \emph{and more}}
+\note{}
+\end{frame}
+
+\begin{frame}
+ \frametitle{High-Level Goals}
+\begin{itemize}
+
+\item \alert{Increase number of VMs without degrading performance.}
+
+\item Improve how guests (and hosts) utilize physical memory.
+\item \alert{Why Memory :} Most constrained and non-renewable resource.
+\item Catastrophic costs when used wrong : Page-fault vs performance extremely non-linear.
+\item Memory overcommit is one of the key drivers of virtualized hosting
+\item \emph{Everyone wants 8GB, even if they are using a few MB}   
+\note{ The main motivation is obviously to increase the number VMs that we can pack into a single physical machine. I guess that's everyone's goal here. 
+For my project, i am looking at how memory utilization can be improved in virtual systems.  I think that memory is (still) the main bottleneck for most computer systems. 
+And thats primarily because of the increasing costs of fetching a page from disk. Also, overcommitting memory is one the key benefits of virtualiztion. If we dont overcommit resources, why even virtualize? }
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Page-Sharing}
+\note{So, how do we provide memory overcommitment without performance loss? One deterministically 'safe' way is to by using page sharing. I am looking primarily at KVM , and KVM does page-sharing by using the KSM, which is a functionality implemented in the linux kernel itself. The idea behind page sharing is simple: pages with same content can be replaced by a single page. All these shared pages are marked copy-on-write, so we are guaranteed safety.
+DIAGRAM COMES HERE
+}  
+\end{frame}
+
+\begin{frame}
+\frametitle{KSM \& Page-Sharing}
+\begin{itemize}
+  \item \alert{KSM } implements \emph{Content Based Page Sharing} in linux.
+  \item Multiple pages with the same content are merged into one.
+  \item How to detect similarity among ever-changing objects(pages) ?
+  \item Brute-force search at regular intervals : scanning.
+  \item Different implementations : VMWare ESX, Difference Engine, Satori, KSM.  
+\end{itemize}
+
+\alert{This talk: Describe 3 modifications to KSM }
+\note{I am primarily working on KVM, so i'll be covering page-sharing from a KVM perspective. KVM uses the KSM to implement page sharing. 
+KSM has been the target of my focus all this while, so i'll take a little time to describe it's operation. }
+
+\end{frame}
+
+
+% \begin{frame}
+%   \frametitle{This talk}
+%   \item Improve KSM
+%   \item Use it to improve page-cache utilization
+% \end{frame}
+
+
+\begin{frame}
+  \frametitle{KSM operation}
+  {In this figure, we see how KSM operates. }
+\end{frame}
+
+\begin{frame}
+\frametitle{KSM}
+\alert{The Good: }  
+  \begin{itemize}
+  \item Very general and non-disruptive solution - meant for page sharing in arbitrary VM areas.
+  \item Any (anonymous) memory area can be made shareable (by any process, not just KVM/QEMU) 
+  \item Very few heuristics used.
+  \end{itemize}
+\alert{The Bad: }
+\begin{itemize}
+  \item Significant overhead
+  \item 10-20 \% CPU utilization in most cases.
+\end{itemize}
+\alert {The Ugly :}
+\begin{itemize}
+\item Design constrained by a patent minefield.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Page Sharing by Flags}
+\begin{itemize}
+  \item Hypothesis: Sharing page-cache pages is bad.
+  \item Page-cache pages are overwritten frequently anyway.
+  \item Page-cache size is 50\% of available memory , so significant KSM savings.
+  \item This hypothesis turns out to be \emph{wrong} 
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Implementation}
+  \begin{itemize}
+  \item Guest writes its page-flags into a memory hole. 
+  \item Host (KSM) needs to access statically defined address in the guest. \alert{HOW?}
+  \item Kernel doesnt seem to have a mechanism to provide memory by physical addresses
+  \item \alert{Currently :} Create memory-hole at boot-time and write to it (using \texttt{ioremap} )
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Lookahead}
+  \begin{itemize}
+  \item Lots of shared pages are file-backed. 
+  \item \alert{Peek at next page before doing the tree-search}
+  \item Assuming consecutive shared pages occour with probability  p , Reduce search costs from log(u) to (1-p)log(u) + (p)1.
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Lookahead results}
+  {Lookahead doesnt work in all cases.Figure: lookahead success and KSM \% cpu difference for 3 workloads: static, desktop, kernelcompile }
+\end{frame}
+
+\begin{frame}
+  \frametitle{Lookahead conclusion}
+  \begin{itemize}
+  \item Lookahead optimization has no overhead in the worst case.
+  \item Shared pages \textbf{increase} because KSM can scan lot more pages per CPU cycle.
+  \item Ideal situations: sharing of large files.
+  \item Desktop environments are best. (X11 fonts, programs, etc). 
+  \item Sub-optimal situations: Lots of sharing, but fragmented. (Kernel compile)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Exclusive Caching}
+  \begin{itemize}
+  \item All guest disk IO goes through host page-cache.
+  \item Double-caching is a problem. Same block is present in both host and guest caches.
+  \item Clearly this is a waste
+  \item Exclusive caches are known to provide better cache utilization. [See: Geiger, gill, mycacheyours].
+  \item Mounting virtual disks as O_DIRECT adds too much penalty
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Double caching problem}
+  {Fig shows percentage of double cached pages in host cache for various workloads}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Exclusive Caching}
+  \begin{itemize}
+
+  \item {Wasting memory by caching 2 copies clearly wasteful}
+  \item {No existing solution for virtual setups}
+  \item \alert{Use KSM!}
+  \item Drop a page from host page-cache if it's already present in guest.
+  \item Luckily for us, KSM builds a nice search tree of all guest pages!
+  \item Scan at the end of every KSM pass, comparing host page-cache pages with unstable,stable tree.
+ \item If match found, drop page from host cache
+ \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Benefits}
+\note{IOZONE?}  
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{TODO}
+  \begin{itemize}
+  \item More experiments, with different workloads.
+  \item Need low-intensity, high-sharing benchmarks. 
+  \item KSM designed for 'idle' loads. How to evaluate idleness?
+  \end{itemize}
+\end{frame}
+
+
+\end{document}

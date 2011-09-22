@@ -1,0 +1,153 @@
+;; RefTeX parse info file
+;; File: /Users/prateeksharma/mtp/stage1.tex
+;; User: prateeksharma (Prateek Sharma)
+
+(set reftex-docstruct-symbol '(
+
+
+(xr nil "\\\\\\\\\\\\")
+
+(index-tags)
+
+(is-multi nil)
+
+(bibview-cache)
+
+(master-dir . "/Users/prateeksharma/mtp/")
+
+(label-numbers)
+
+(bof "/Users/prateeksharma/mtp/stage1.tex")
+
+(toc "toc" "    1 Abstract" "/Users/prateeksharma/mtp/stage1.tex" nil 2 "1" "\\section{Abstract}" 351)
+
+(toc "toc" "    2 Introduction" "/Users/prateeksharma/mtp/stage1.tex" nil 2 "2" "\\section{Introduction}" 372)
+
+(toc "toc" "    3 Memory Overcommitment" "/Users/prateeksharma/mtp/stage1.tex" nil 2 "3" "\\section{Memory  Overcommitment}" 2206)
+
+(toc "toc" "      3.1 Why sharing" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "3.1" "\\subsection{Why sharing}" 7471)
+
+(toc "toc" "      3.2 Other overcommitment approaches" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "3.2" "\\subsection{Other overcommitment approaches}" 7808)
+
+(toc "toc" "    4 Page Sharing" "/Users/prateeksharma/mtp/stage1.tex" nil 2 "4" "\\section{Page Sharing}" 7952)
+
+(toc "toc" "      4.1 Scanning vs Disk based sharing" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "4.1" "\\subsection{Scanning vs Disk based sharing}" 10684)
+
+(toc "toc" "    5 KSM" "/Users/prateeksharma/mtp/stage1.tex" nil 2 "5" "\\section{KSM}" 10760)
+
+(toc "toc" "      5.1 Algorithm" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "5.1" "\\subsection{Algorithm}" 15128)
+
+(toc "toc" "      5.2 KSM comments" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "5.2" "\\subsection{KSM comments}" 15520)
+
+(toc "toc" "      5.3 Exp 1: KSM effectiveness" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "5.3" "\\subsection{Exp 1: KSM effectiveness}" 17046)
+
+(toc "toc" "    6 Analysis of shared pages" "/Users/prateeksharma/mtp/stage1.tex" nil 2 "6" "\\section{Analysis of shared pages}" 17428)
+
+(toc "toc" "      6.1 By flags" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "6.1" "\\subsection{By flags}" 17754)
+
+(toc "toc" "      6.2 KernelMapped: This includes kernel text+data+stack, as well as any" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "6.2" "\\subsection{KernelMapped: This includes kernel text+data+stack, as well as any}" 18504)
+
+(toc "toc" "      6.3 Anonymous" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "6.3" "\\subsection{Anonymous}" 19134)
+
+(toc "toc" "      6.4 Mapped" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "6.4" "\\subsection{Mapped}" 19167)
+
+(toc "toc" "      6.5 PageCache" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "6.5" "\\subsection{PageCache}" 19189)
+
+(toc "toc" "      6.6 Free" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "6.6" "\\subsection{Free}" 21287)
+
+(toc "toc" "      6.7 Exp 2: Pages shared by flag type" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "6.7" "\\subsection{Exp 2: Pages shared by flag type}" 21307)
+
+(toc "toc" "      6.8 Exp 2.1 : KSM with no pagecache pages" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "6.8" "\\subsection{Exp 2.1 : KSM with no pagecache pages}" 21717)
+
+(toc "toc" "      6.9 Exp 3: Page sharing over time" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "6.9" "\\subsection{Exp 3: Page sharing over time}" 21814)
+
+(toc "toc" "    7 Sharing Model" "/Users/prateeksharma/mtp/stage1.tex" nil 2 "7" "\\section{Sharing Model}" 22142)
+
+(toc "toc" "    8 Lookahead optimization" "/Users/prateeksharma/mtp/stage1.tex" nil 2 "8" "\\section{Lookahead optimization}" 23405)
+
+(toc "toc" "      8.1 Exp 5: Substrings in shared-map." "/Users/prateeksharma/mtp/stage1.tex" nil 3 "8.1" "\\subsection{Exp 5: Substrings in shared-map.}" 23439)
+
+(toc "toc" "      8.2 Tracing" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "8.2" "\\subsection{Tracing}" 23630)
+
+(toc "toc" "      8.3 Lookahead" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "8.3" "\\subsection{Lookahead}" 24306)
+
+(toc "toc" "      8.4 KSM Implementation of lookahead" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "8.4" "\\subsection{KSM Implementation of lookahead}" 25852)
+
+(toc "toc" "      8.5 Exp 4: Lookahead success" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "8.5" "\\subsection{Exp 4: Lookahead success}" 27351)
+
+(toc "toc" "      8.6 {Performance of lookahead} The main advantage of lookahead of is reduced search cost, and hence a re" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "8.6" "\\subsection {Performance of lookahead}
+The main advantage of lookahead of is reduced search cost, and hence a reduction in KSM overhead is to be expected. The KSM " 27559)
+
+(toc "toc" "      8.7 {junk} This lookahead heuristic was implemented in KSM. <See below for results>. We found that upto " "/Users/prateeksharma/mtp/stage1.tex" nil 3 "8.7" "\\subsection {junk}
+This lookahead heuristic was implemented in KSM. <See below for results>. 
+We found that upto one third of comparisons can be eliminated.
+
+Looka" 31549)
+
+(toc "toc" "    9 Problem of double-caching" "/Users/prateeksharma/mtp/stage1.tex" nil 2 "9" "\\section{Problem of double-caching}" 32029)
+
+(toc "toc" "      9.1 {QEMU caching modes} Virtual disks can be mounted in 4 caching modes in QEMU. None: uses direct IO u" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "9.1" "\\subsection {QEMU caching modes}
+Virtual disks can be mounted in 4 caching modes in QEMU.
+None: uses direct IO using O\\_DIrect and hence bypasses the page-cache of" 33076)
+
+(toc "toc" "      9.2 Multi level Exclusive caching" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "9.2" "\\subsection{Multi level Exclusive caching}" 34793)
+
+(toc "toc" "      9.3 KSM-implementation" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "9.3" "\\subsection{KSM-implementation}" 37585)
+
+(toc "toc" "      9.4 Analysis" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "9.4" "\\subsection{Analysis}" 39511)
+
+(toc "toc" "      9.5 Results" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "9.5" "\\subsection{Results}" 40368)
+
+(toc "toc" "      9.6 Existing approaches" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "9.6" "\\subsection{Existing approaches}" 42137)
+
+(toc "toc" "      9.7 Importance of exclusive caches." "/Users/prateeksharma/mtp/stage1.tex" nil 3 "9.7" "\\subsection{Importance of exclusive caches.}" 42214)
+
+(toc "toc" "      9.8 Exp 6: Memory savings with exclusive caches" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "9.8" "\\subsection{Exp 6: Memory savings with exclusive caches}" 42260)
+
+(toc "toc" "      9.9 Exp 7: Overhead of ksm-exclusive-cache" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "9.9" "\\subsection{Exp 7: Overhead of ksm-exclusive-cache}" 42387)
+
+(toc "toc" "      9.10 Exp 8: Memory mountains" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "9.10" "\\subsection{Exp 8: Memory mountains}" 42633)
+
+(toc "toc" "      9.11 Motivation" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "9.11" "\\subsection{Motivation}" 43054)
+
+(toc "toc" "      9.12 Related work" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "9.12" "\\subsection{Related work}" 43562)
+
+(toc "toc" "    10 Qualitative survey of dynamic memory management for VMs." "/Users/prateeksharma/mtp/stage1.tex" nil 2 "10" "\\section{Qualitative survey of dynamic memory management for VMs.}" 44190)
+
+(toc "toc" "      10.1 Tmem: cleancache, ramszwap, etc." "/Users/prateeksharma/mtp/stage1.tex" nil 3 "10.1" "\\subsection{Tmem: cleancache, ramszwap, etc.}" 44410)
+
+(toc "toc" "      10.2 Collab2" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "10.2" "\\subsection{Collab2}" 45500)
+
+(toc "toc" "      10.3 Ballooning and Hotplug" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "10.3" "\\subsection{Ballooning and Hotplug}" 45709)
+
+(toc "toc" "    11 Improving memory management with KSM" "/Users/prateeksharma/mtp/stage1.tex" nil 2 "11" "\\section{Improving memory management with KSM}" 45777)
+
+(toc "toc" "      11.1 Estimating WSS" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "11.1" "\\subsection{Estimating WSS}" 46261)
+
+(toc "toc" "        11.1.1 related work" "/Users/prateeksharma/mtp/stage1.tex" nil 4 "11.1.1" "\\subsubsection{related work}" 46553)
+
+(toc "toc" "        11.1.2 KSM Solution" "/Users/prateeksharma/mtp/stage1.tex" nil 4 "11.1.2" "\\subsubsection{KSM Solution}" 47174)
+
+(toc "toc" "        11.1.3 Disk buddies" "/Users/prateeksharma/mtp/stage1.tex" nil 4 "11.1.3" "\\subsubsection{Disk buddies}" 48165)
+
+(toc "toc" "        11.1.4 Host swapping" "/Users/prateeksharma/mtp/stage1.tex" nil 4 "11.1.4" "\\subsubsection{Host swapping}" 49034)
+
+(toc "toc" "        11.1.5 someting else" "/Users/prateeksharma/mtp/stage1.tex" nil 4 "11.1.5" "\\subsubsection{someting else}" 49849)
+
+(toc "toc" "    12 Conclusion" "/Users/prateeksharma/mtp/stage1.tex" nil 2 "12" "\\section{Conclusion}" 49880)
+
+(toc "toc" "    13 Future Work" "/Users/prateeksharma/mtp/stage1.tex" nil 2 "13" "\\section{Future Work}" 49902)
+
+(toc "toc" "    14 References" "/Users/prateeksharma/mtp/stage1.tex" nil 2 "14" "\\section{References}" 49927)
+
+(toc "toc" "      14.1 Caching" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "14.1" "\\subsection{Caching}" 49949)
+
+(toc "toc" "      14.2 General" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "14.2" "\\subsection{General}" 50238)
+
+(toc "toc" "      14.3 page sharing" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "14.3" "\\subsection{page sharing}" 50285)
+
+(toc "toc" "      14.4 Memory" "/Users/prateeksharma/mtp/stage1.tex" nil 3 "14.4" "\\subsection{Memory}" 51389)
+
+(eof "/Users/prateeksharma/mtp/stage1.tex")
+))
+

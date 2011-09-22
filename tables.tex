@@ -1,0 +1,148 @@
+% Created 2011-09-22 Thu 11:35
+\documentclass[11pt]{article}
+\usepackage[latin1]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{fixltx2e}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{soul}
+\usepackage{textcomp}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{latexsym}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\tolerance=1000
+\providecommand{\alert}[1]{\textbf{#1}}
+\begin{document}
+
+
+
+\title{tables}
+\author{prateek sharma}
+\date{22 September 2011}
+\maketitle
+
+\setcounter{tocdepth}{3}
+\tableofcontents
+\vspace*{1cm}
+\section{pte munging table}
+\label{sec-1}
+
+
+
+\begin{center}
+\begin{tabular}{|c|c|}
+ Guest Physical Page  &  Host Physical Page  \\
+\hline
+ A                    &  X                   \\
+\hline
+\end{tabular}
+\caption{Page-Table for VM-1, kept by Host}
+\end{center}
+
+
+
+
+
+\begin{center}
+\begin{tabular}{|c|c|}
+ Guest Physical Page  &  Host Physical Page  \\
+\hline
+ B                    &  Y                   \\
+\hline
+\end{tabular}
+\caption{Page-Table for VM-2, kept by Host}
+\end{center}
+
+
+\begin{center}
+\begin{tabular}{|c|c|}
+ Guest Physical Page  &  Host Physical Page  \\
+\hline
+ A                    &  K                   \\
+\hline
+\end{tabular}
+\caption{Page-Table after merging}
+\end{center}
+
+
+
+
+
+\begin{center}
+\begin{tabular}{ll}
+ Guest Physical Page  &  Host Physical Page  \\
+\hline
+ B                    &  K                   \\
+\hline
+\end{tabular}
+\caption{Page-Table for VM-1, kept by Host}
+\end{center}
+
+
+\section{table of sharing for 3 workloads}
+\label{sec-2}
+
+
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+ Workload (2VMs)  &  Shared Pages  &  Freed Memory  \\
+\hline
+ Boot up          &  8,000         &                \\
+ Kernel Compile   &  26,000        &                \\
+ Desktop VM use   &  31,000        &                \\
+\end{tabular}
+\caption{Shared pages for Various workloads}
+\end{center}
+\section{table for lookahead success - 3 loads}
+\label{sec-3}
+
+
+
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|}
+ Workload (2VMs)  &  Avg. Shared Pages - Vanilla  &  Avg. Shared Pages - lookahead  &  CPU-look  &  CPU-Vanilla  \\
+\hline
+ Boot up          &  8,000                        &  11,000                         &        12  &           12  \\
+ Kernel Compile   &  26,000                       &  30,000                         &        22  &           19  \\
+ Desktop VM use   &  31,000                       &  62,000                         &      16.8  &         14.6  \\
+\end{tabular}
+\caption{Lookahead performance}
+\end{center}
+
+
+  
+
+\begin{center}
+\begin{tabular}{llllrr}
+ Workload  (2VMs)      &  Avg. Shared Pages  &  Total Pages dropped  &  Avg Cache saved  &  CPU-ksm  &  CPU-exc  \\
+\hline
+ Kernel Compile(2 GB)  &  75,000             &                       &  512M - 260M      &       14  &       16  \\
+ Desktop VM use        &  62,000             &  162,000              &  400M- 219M       &     18.8  &     14.6  \\
+\end{tabular}
+\caption{Exclusive Cache benefits}
+\end{center}
+
+
+
+BONNIE
+
+
+\begin{center}
+\begin{tabular}{lll}
+ Test          &  Plain       &  With Excl Cache  \\
+\hline
+ Write(char)   &  24,000 K/s  &  32,000 K/s       \\
+ Read(char)    &  27,000 K/s  &  27,500 K/s       \\
+ Read(block)   &  53,750 K/s  &  47,700 K/s       \\
+ Write(block)  &  22,500 K/s  &  23,800 K/s       \\
+\end{tabular}
+\caption{Exclusive cache impact on Bonnie++ benchmark}
+\end{center}
+
+\end{document}

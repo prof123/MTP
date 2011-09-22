@@ -67,8 +67,101 @@ Reason : Demonstrate the latencies/throughput of various caches.
 
 what i have
 
-* bonnie1 ,2,3,4 with no excache vs excache.
-* iozone with various cache policies.
-* bonnie with various cache policies.
-* kcompile 4 with and without ksm.
 
+* TODO MASTER TODO
+SLIDES
+* pte munging table
+
+| Guest Physical Page | Host Physical Page |
+|---------------------+--------------------|
+| A                   | X                  |
+
+
+| Guest Physical Page | Host Physical Page |
+|---------------------+--------------------|
+| B                   | Y                  |
+
+
+
+| Guest Physical Page | Host Physical Page |
+|---------------------+--------------------|
+| A                   | K                  |
+
+
+| Guest Physical Page | Host Physical Page |
+|---------------------+--------------------|
+| B                   | K                  |
+
+
+
+diagram of qemu IO
+* table of sharing for 3 workloads
+
+| Workload (2VMs) | Shared Pages | Freed Memory |
+|-----------------+--------------+--------------|
+| Boot up         | 8,000        |              |
+| Kernel Compile  | 26,000       |              |
+| Desktop VM use  | 31,000       |              |
+
+
+* table for lookahead success - 3 loads
+
+
+| Workload (2VMs) | Avg. Shared Pages - Vanilla | Avg. Shared Pages - lookahead | CPU-look | CPU-Vanilla |
+|-----------------+-----------------------------+-------------------------------+----------+-------------|
+| Boot up         | 8,000                       | 11,000                        |       12 |          12 |
+| Kernel Compile  | 26,000                      | 30,000                        |       22 |          19 |
+| Desktop VM use  | 31,000                      | 62,000                        |     16.8 |        14.6 |
+
+
+
+
+* graph for duplicate cache problem - just show yes > y output already. 
+* table for excache benefits. BONNIE. 
+
+
+| Workload  (2VMs)     | Avg. Shared Pages | Total Pages dropped | Avg Cache saved | CPU-ksm | CPU-exc |
+|----------------------+-------------------+---------------------+-----------------+---------+---------|
+| Kernel Compile(2 GB) | 75,000            |                     | 512M - 260M     |      14 |    16   |
+| Desktop VM use       | 62,000            | 162,000             | 400M- 219M      |    18.8 |    14.6 |
+
+BONNIE
+
+| Test         | Plain      | With Excl Cache |
+|--------------+------------+-----------------|
+| Write(char)  | 24,000 K/s | 32,000 K/s      |
+| Read(char)   | 27,000 K/s | 27,500 K/s      |
+| Read(block)  | 53,750 K/s | 47,700 K/s      |
+| Write(block) | 22,500 K/s | 23,800 K/s      |
+
+
+
+
+
+PAPER
+cache=none mystery -friday
+kcompile 2,4 data -friday
+Zipf -friday
+freq of scanning -friday
+
+* bonnie with diff cache policies (2,4 VMs) [last]
+* iozone with various cache policies.[done]
+* kcompile 4 with and without ksm. [TODO] 
+
+
+| Benchmark                    | Pages Shared |
+|------------------------------+--------------|
+| 2 Desktop VMs(Deb and Mint)  |              |
+| 2 Server Vms booted up       |              |
+| 2 VMs running kernel compile |              |
+|                              |              |
+
+| Benchmark | Duplicate Cache Pages |   |
+|-----------+-----------------------+---|
+|           |                       |   |
+|           |                       |   |
+
+|   |   |   |
+|---+---+---|
+|   |   |   |
+|   |   |   |

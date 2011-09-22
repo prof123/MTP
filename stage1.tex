@@ -16,6 +16,9 @@
 %\setcounter{tocdepth}{3}
 %\tableofcontents
 
+\section{Abstract}
+
+
 \section{Introduction}
 
 Virtualization enables us to run multiple Operating Systems (one in each Virtual Machine) on a single physical machine. One of the key drivers of Virtual hosting and cloud computing is the ability to overcommit resources. That is, virtual machines are given resources in excess of what is actually available.
@@ -334,21 +337,23 @@ The presence of substrings can be explained by the fact that a large amount of c
 The presence of spatial locality leads to a very natural improvement in the KSM algorithm. If a page X is merged with another page Y, then we check if page X+1 can be merged with Y+1, before searching in the stable and unstable trees. In other words, we do a lookahead and see if the pages are common, before doing a general search. 
 A more detailed algorithm follows:
 
-If(equal(page Z, previous_matched_page+1)) :
-     merge
-else :
-   Search trees for Z 
-   If matched with W 
-        previous_matched_page = W
+\\
+If(equal(page Z, previous\_matched\_page+1)) : \\
+     merge \\
+else : \\
+   Search trees for Z  \\
+   If matched with W  \\
+        previous_matched_page = W \\
 
-If(equal(Page X , Page Y)) :
-   previous_matched_page = Y
+If(equal(Page X , Page Y)) : \\
+   previous_matched_page = Y \\
+\\
 
 Analysis:
 The lookahead optimization reduces the average cost of searching for a page. Assuming that the probability of a page being duplicate file is $p$, the expected cost with the lookahead optimization in place is now 
 $p*Cost(merging) + (1-p)*Cost(tree search)$
 
-The lookahead tricky is particularly effective when the pages are shared for the first time. Once the pages are merged, there will be no additional overhead in the subsequent passes (provide they have not changed and the COW is not broken). To detect whether a page is shared/merged, KSM simply checks a flag(PAGE_KSM), and moves on to the next page if they are. 
+The lookahead tricky is particularly effective when the pages are shared for the first time. Once the pages are merged, there will be no additional overhead in the subsequent passes (provide they have not changed and the COW is not broken). To detect whether a page is shared/merged, KSM simply checks a flag(PAGE\_KSM), and moves on to the next page if they are. 
 Thus the lookahead optimization reduces search costs only when the pages can be potentially shared. Once the sharing is established, it plays no role (and hence can offer no improvements) in the subsequent passes. 
 
 \subsection{Exp 4: Lookahead success}
@@ -402,7 +407,7 @@ Lookahead value.
 
 Here is how the lookahead optimization works in the context of KSM. 
 KSM default case : $lookup_{stable}$ -> $lookup_{unstable}$ -> $insert_{unstable}$
-Lookahead : lookahead -> $insert_{stable}$-> KSM_default.
+Lookahead : lookahead -> $insert_{stable}$-> KSM\_default.
 The optimization does not incur any extra overhead in the case where the lookahead fails.
 
 
@@ -418,7 +423,8 @@ We can see the amount of memory utilized by the page-cache in the host when vari
 
 \subsection {QEMU caching modes}
 Virtual disks can be mounted in 4 caching modes in QEMU.
-None: uses direct IO
+None: uses direct IO using O\_DIrect and hence bypasses the page-cache of the host OS. Supposed to give bad results [http://www.mail-archive.com/kvm@vger.kernel.org/msg30649.html] . But no evidence has been found of that so far??
+
 writeback
 writethrough:
 VirtIO. Although VIRTIO is not strictly a caching mode, but instead a more different IO handling mechanism. Disks mounted as virtio are not emulated by qemu. Instead the host kernel has drivers which directly interact directly with the frontends of the corresponding drivers in the guest VMs.
@@ -427,16 +433,77 @@ Virtio is esentially a ring-buffer implementation. It requires special drivers i
 To record the double caching, we record the cache size in the host. To see the impact of the caching mode. Since the caching mode primarily impacts IO performance, the workloads used are Bonnie++ and Iozone. The relationship between cache size and guest IO performance is shown HERE. 
 The first set of experiments is with a single VM to measure the performance impact of caching modes.
 The other is with 2VMs with different caching modes to determine interference effects. 
+With one VM, we observe that the caching mode does not have a drastic impact on IO performance in these benchmarks. 
+For raw speeds, the hdaparm -tT test showed this result:
 
+Some claims[that io flamewar] suggest that cache=none performs badly in case of multiple VMs. In FIGURE SOMETHING we run bonnie on 2 VMs with a variety of caching modes. 
+DO I NEED NINE EXPERIMENTS HERE?
+
+Repeat with 4 VMs. 
+%This experimentation is gettint too much. I must do comprehensive ecperiments on MY improvements not QEMU!
+
+\subsection{Multi level Exclusive caching}
+
+Multiple levels of cache occour in several components of computer systems. The CPU caches have an L1/L2/L3 cache heirarchy, with the smaller caches occouring closer to the CPU and the larger ones closer to the programs.
+Multi-level caches are also found in network storage systems. Both the client and the server maintain a cache. In the context of storage systems, the problem of exclusive caching is well studied [MYCACHE, GILL, ETC]. Caching in storage systems fits the host-cache/guest-cache model most closely. In both cases the caches are software managed and are maintained in an LRU order (or some variant thereof). 
+
+If both the caches are maintained in an LRU fashion, then the client caches see a good spatial and temporal locality. However it has been found that [REFERENNCE HERE] host caches typically see significantly bad locality of access. Several solutions to this have been proposed - the caching algorithms can be changed to get better cumulative hit ratios, as developed in [REFERENCE -MQ ]. 
+
+Maintaining an exclusive cache needs co-operation and co-ordination between varios caches in the hierarchy. Items can be promoted [GILL] or demoted [MYCACHE]. This notifies the other cache that an item is bought-in/evicted from the cache and the other cache can then take action. This needs explicit notification of any modifications to the cache. In the host-guest cache setup that virtual systems deal with, the notifications can cause a large overhead since the page cache sees high activity.
+
+More pressing is the problem of actually generating these notifications - they need modifications to the host and the guest OS. 
+
+Since maintaining exclusive caches increases the effective cache size, it is can pay off even if modifications to the OS is required. However this is not straight-forward. 
+The first challenge is to get notifications of evictions. This can be done by explicit notifications from the guest, or the by using snooping techniques developed in GEIGER. 
+
+The real problem is that there is no easy way to map disk blocks in the host and the guest page cache. The hypervisor (QEMU) supports a large amount of virtual disk formats (RAW, LVM, QCOW, QCOW2, QED,FVD..). The mapping from virtual block number to physical block number (what the host file system sees) can be determined fairly easily in case of RAW images, but one would need explicit hypervisor support in every other case. 
+
+But then we have a complex co-ordination challenge between the host, guest, hypervisor, and all the disk emulation mode it supports (IDE, VIRTIO, VHOST ... ). 
+Clearly we need a better solution which does not need to contend with this 3way handshake and yet works with all the above mentioned variances and environments. 
+    
+\subsection{KSM-implementation}
+
+It turns out there is a way to obtain an exclusive host and guest page cache. Our solution involves KSM, and uses it's search-trees to search for pages in the host page cache. Recall that at the end of every scan, KSM has built a search tree of all the pages in the guests (which have not changed since the previous scan i.e nonvolatile). The host page-cache pages are compared for duplicates using the stable and unstable tree, and if a match is found, we drop the page from the host cache. 
+
+Not having volatile pages in the search tree represents an interesting challenge. On one hand, if a page is freshly bought into the guest cache, then it is volatile. However since the route passes through the host cache , it is also present in the host cache. Since it is volatile, it was bought into both these caches 'recently'. Thus our cache isnt totally exclusive but only partially so. 
+On the other hand, the increased number of comparisons between host cache pages and ALL the VM pages causes intolerably large overhead in terms of ksm cpu usage. We have observed sharp peaks in KSM cpu usage when it flushes the duplicate cache pages, with the CPU usage reaching 90 percent and above, even with only the stable and unstable tree search. Searching all the volatile pages induces too many false-positives and increased overhead to be of much use.
+
+The algorithm is:
+
+At the end of a  KSM scan:  \\
+   For all unmapped pages in the host:  \\
+       If (page $\in$ KSM stable or Unstable tree):  \\
+          drop\_page(page) ; \\
+ 
+
+This adds a small overhead , BUT it is equivalent to another VM being scanned. The benefits are that we get a properly exclusive cache with strong guarantees 
+about exclusivity. Also the KSM heuristics and nuances actually \textbf{help} because 
+we dont scan `hot' pages (volatile), and the scanning approach ensures that 
+there is no correctness violation .
+
+\subsection{Analysis}
 
 Any solution to the exclusive caching problem must strive for a balance between size of the host page cache, size of the guest page cache, and performance of the guests. 
 We can trivially get an exclusive cache by not having either of the host and guest caches, by dropping the caches at regular intervals.
 Another alternative is to emply a balloon module. Ballooning inside a VM will cause it drop some pages, and is a way to reduce the size of the guest-page-cache.
 
+An important parameter is the frequency of cache scrubbing. Currently, we drop duplicate pages after having completed one pass(all VMs have been scanned). Increasing the frequency of cache scrubbing implies a smaller effective host cache size, and is particularly effective for heavy workloads in the VMs.
+
+FIGURE SHOWS BONNIE WITH 2 VMS WITH the TWO FREQUENCIES.
 
 \subsection{Results}
 We evaulate the effectiveness of the KSM-exclusive-cache solution. The primary metric here is the amount of free and cached memory on the host(as observed by free/vmstat). 
 The IO benchmarks Iozone and bonnie++ were run on VMs with and without exclusive caches. 
+A point to note is that the IO benchmarks are short-running, heavy workloads, precisely the kinds of tests which KSM doesnt do very well on. Inspite of the handicap, substatial performance improvements were found with the host cache scrubbing implementation. 
+
+The improvements in the Guest benchmarks can be attributed to less memory pressure on the host in general and a higher cache-hit rate in the host. 
+Our implementation of the exclusive cache guarantees that the cache-hit ratio of the host is not affected. Any page dropped was present in one of the guests. If multiple guests request it, then KSM has already shared it. 
+
+Since the ksm based cache scrubber is scanning based, the cache size is dictated by the frequency of the scrubbing. Therefore we cannot rely on it to effectively constrain the cache size during heavy workloads. 
+
+With ever increasing memory sizes, any scanning based page merging solution must conted with increasing scanning frequency , or missing a large amount of sharing opportunities as the distance between pages with same contents increases. Depending on the requirement, the administrator can opt for sacrificing one core for detecting page-sharing, or keeping it at a low throttle and share pages which remain so for very long periods of time. 
+
+In almost all cases, the average amount of cached memory has been reduced with the scrubbing, even though the scrubbing is performed very few times. (can be seen from the sudden drops in FIGURE). 
 
 \subsection{Existing approaches}
 
@@ -455,6 +522,16 @@ Reason : scanning vast host page cache could be significant overhead.Also saving
 
 Some caching theory references.
 (1)
+
+\subsection{Exp 8: Memory mountains}
+
+Look at this problem like L1/2 cache , and build mem-mountains in these cases:
+(normal ; no guest cache ; no host cache ; swap as ramdisk )
+Setup : could use IOZone or randal bryant's simple program.
+Reason : Demonstrate the latencies/throughput of various caches. 
+\textbf{This depends on lots of factors like IO schedulers, FS, virtual disk layout etc. Do for any one, for now.}
+
+
 \subsection{Motivation}
 
  Virtual Disks are seldom mounted as $O_{DIRECT}$, which means that the  host pagecache also stores disk blocks. The reason for this is performance,  since using $O_{DIRECT}$ turns off all the clever IO scheduling and batching( This is apparently heavily debated).
@@ -467,63 +544,64 @@ Geiger snoops on guest pagetable updates  and all disk accesses to build a  fair
 
 Another issue with Geiger is that \textbf{it cannot work with hardware virtualization} since it depends heavily on shadow tables. 
 
-\subsection{KSM solution}
 
-    
-\section{KSM-implementation of double-caching}
-
-
-We use detect pages in the host pagecache already present in the guests by               using KSM. 
-KSM already has a nice, sorted tree of all guest pages (in the stable and unstable trees) 
-at the end of every scan. So the algorithm is: 
-
-At the end of a  KSM scan: 
-   For all unmapped pages in the host: 
-       If (page \in KSM stable or Unstable tree): 
-          $drop_{page}$(page) ; 
- 
-
-This adds a small overhead , BUT it is equivalent to another VM being scanned. 
-The benefits are that we get a properly exclusive cache with strong guarantees 
-about exclusivity. Also the KSM heuristics and nuances actually \textbf{help} because 
-we dont scan `hot' pages (volatile), and the scanning approach ensures that 
-there is no correctness violation .
-
-\subsection{Implementation and analysis}
-
-\subsection{Results}
-
-
-\subsection{Exp 7: Number of pages evicted out due to duplicates}
-
-\subsection{Exp 8: Overhead of cache eviction}
-
-   (2)
 \section{Qualitative survey of dynamic memory management for VMs.}
 
-\subsection{Exp 8: Memory mountains}
-
-Look at this problem like L1/2 cache , and build mem-mountains in these cases:
-(normal ; no guest cache ; no host cache ; swap as ramdisk )
-Setup : could use IOZone or randal bryant's simple program.
-Reason : Demonstrate the latencies/throughput of various caches. 
-\textbf{This depends on lots of factors like IO schedulers, FS, virtual disk layout etc. Do for any one, for now.}
+There are several solutions to provide dynamic memory management for Virtual Machines. This section contains a brief description of some of the them. 
 
 \subsection{Tmem: cleancache, ramszwap, etc.}
-
+Transcendent memory is a radical solution to dynamic memory management, which mandates memory regions which are not in explicit control of the host kernel. That is, a large area of memory is reserved, and is not directly addressible by the kernel. It is used to store objects (usually pages). Users (VMs and host) can use this object store to store pages. The key feature of transcendent memory is that there are no guarantees made about the availibility of these objects. That is, the objects(pages) which are stored in the transcendent memory area are not persisent. Thus only clean pages can be stored in the transcendent memory. 
+If a lookup for a page in the transcendent memory fails, it must be bought back from the disk. Thus the users of transcendent memory must make changes to several memory access operations. 
+Transcendent memory has been used mainly to implement several kinds of cleancaches (a page cache for clean pages). For example, one application is to provide a compressed pool of pages . THis is done by ramzswap. 
+[TMEM]
 \subsection{Collab2}
-
+Collab2 is a framework for providing fine-grained dynamism for memory management for hypervisors. It uses hardware assisted page-transitions to determine guest free/used pages. 
+[COLLAB2]
 \subsection{Ballooning and Hotplug}
+[HOTPLUG] paper summary here. 
 
-   (2)
+\section{Improving memory management with KSM}
+Just as the exclusive cache problem can be solved using KSM, so can a range of other memory management issues. The key to each solution is that we make use of all the work KSM does during a scan (ie building the search trees) for our purposes.
+In this section we demonstrate how KSM can be used. The actual implementation and evaluation of the solution is work in progress - we give rationale for why the proposed solution should work.
+
+\subsection{Estimating WSS}
+There are several ways of estimating the Working set size of processes and VMs. Determining the WSS is important for estimating the memory requirement of VMs. If the WSS is known, the dynamic memory management techniques (ballooning and hotplug) can be applied. 
+
+\subsubsection{related work}
+Several ways of estimating WSS exist: [WALDS] uses hardware perf counters to estimate Miss-rate-curves. [GEIGER] , which can snoop on evictions, can determine if the WSS is greater than the allocated memory size. [ESX] uses a sampling approach to determine WSS if it is less than the allocated memory, so that ballooning can be employed. 
+
+The challenge in determining the WSS is determining memory accesses without the overhead. Trapping all accesss is prohibitive for performance as well actually simulating the LRU histogram and calculating WSS. Most approaches use a sampling approach. 
+
+\subsubsection{KSM Solution}
+We use KSM to estimate WSS of guests. We already know which pages are volatile. Hence it is easy to determine the writeable working set and the page dirty rate of each VM.
+
+Estimating page-reads is trickier. If a VM reads from it's own address space then some form of trapping+sampling is required. 
+However there is another way to determine page accesses - via the host page cache. We determine the number of page-ins for every VM, this gives the number of page-reads. 
+
+We can also track page evictions ala Geiger. Here a heuristic is used: if the first 8 bytes of a page have changed then we claim an eviction. This is reasonable because evictions imply page resuse, and page mutations by a process is typically append or some write to a random location in the page. Evictions are much more important than plain volatile information , because evictions convey much more information about the working set. 
+
+Thus: WSS = Volatile pages + page-ins + evictions.
+
+\subsubsection{Disk buddies}
+Memory Fingerprinting allows VM placement to maximize page sharing , as demonstrated in [MEMORY BUDDIES]. A memory fingerprinting mechanism can be trivially implemented using KSM. 
+In addition to memory fingerprinting, we can use the page sharing statistics and the lookahead success rate to determine the probability of the virtual disk images to have a large number of common disk blocks. Thus we can determine if 2 VMs colocated should have their virtual disks stored on the same network server. This is useful if the disks are stored on a content-addressible-storage backed volume. 
+Virtual Disks are frequently created from a small set of tempalates, and there is a large scope for common blocks. This disk-image similarity hint can potentially speed up CAS deduplication and serve as hint to determine duplicate blocks efficiently. 
+
+\subsubsection{Host swapping}
+
+The host memory management subsystem can use KSM information for swapping out guest pages to disk. By their nature, stable tree pages cannot be swapped out since they are kernel pages, so using KSM prevents us from swapping out shared pages. 
+To avoid double-swapping, free-pages in the guests should not be swapped out by the host. To prevent swapping out guest free pages, the guest needs to notify the host. 
+A solution called FreePageHinting [http://www.linux-kvm.org/wiki/images/f/ff/2011-forum-memory-overcommit.pdf] uses a per-guest bitmap of free/used pages. 
+
+KSM can be used to guess free pages. Zero pages are obviously free - they are also shared by KSM, so they cannot be swapped out. Further work on designing a free-page-guessing heuristic using KSM needs to be done.
+
+\subsubsection{someting else}
+
 \section{Conclusion}
 
-   (1)
 \section{Future Work}
-
   
 \section{References}
-
 
 \subsection{Caching}
 
@@ -587,3 +665,4 @@ guess which page contents of other process/kernel!)
 [transcendent] Transcendent memory: Re-inventing physical memory management in a virtualized environment
 
 \end{document}
+
